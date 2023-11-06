@@ -14,7 +14,6 @@ import IsChild from './screens/IsChild';
 import ChildReport from './screens/ChildReport'
 import GeneralHistoryDisplay from './screens/GeneralHistoryDisplay';
 import ConsolidatedReports from './screens/ConsolidatedReports';
-
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -141,19 +140,6 @@ export default function App() {
             }}
           />
           <Stack.Screen
-            name="GeneralHistoryDisplay"
-            component={GeneralHistoryDisplay}
-            options={{
-              // headerShown: false,
-              headerStyle: {
-                backgroundColor: COLORS.theme, // Set your desired background color
-
-              },
-              headerTintColor: COLORS.white,
-              title: "Report",
-            }}
-          />
-          <Stack.Screen
             name="IsChild"
             component={IsChild}
             options={{
@@ -193,10 +179,9 @@ export default function App() {
               title: "ConsolidatedReport",
             }}
           />
-          
-          {/* <Stack.Screen
-            name="BitNamevsGenderGraph"
-            component={BitNamevsGenderGraph}
+          <Stack.Screen
+            name="GeneralHistoryDisplay"
+            component={GeneralHistoryDisplay}
             options={{
               // headerShown: false,
               headerStyle: {
@@ -204,9 +189,10 @@ export default function App() {
 
               },
               headerTintColor: COLORS.white,
-              title: "BitNamevsGenderGraph",
+              title: "Report",
             }}
-          /> */}
+          />
+
 
         </Stack.Navigator>
       </NavigationContainer>

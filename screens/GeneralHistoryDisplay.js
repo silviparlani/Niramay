@@ -37,7 +37,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                     anganwadiNo,
                     childsName,
                 };
-                const response = await fetch('http://192.168.1.16:3000/getGeneralHistory', {
+                const response = await fetch('http://10.1.20.103:3000/getGeneralHistory', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                     anganwadiNo,
                     childsName,
                 };
-                const visitsResponse = await fetch('http://192.168.1.16:3000/getVisits', {
+                const visitsResponse = await fetch('http://10.1.20.103:3000/getVisits', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                 observations: newVisit.observations,
             };
     
-            const response = await fetch('http://192.168.1.16:3000/visits', {
+            const response = await fetch('http://10.1.20.103:3000/visits', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

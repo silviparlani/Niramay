@@ -5,7 +5,6 @@ import COLORS from '../constants/colors';
 import { Ionicons } from "@expo/vector-icons";
 import Checkbox from "expo-checkbox"
 import Button from '../components/Button';
-import { Picker } from '@react-native-picker/picker';
 
 const Signup = ({ navigation }) => {
     const [isPasswordShown, setIsPasswordShown] = useState(false);
@@ -52,7 +51,7 @@ const Signup = ({ navigation }) => {
 
       setPasswordValidationMessage('');
       
-      fetch('http://192.168.1.16:3000/api/register', {
+      fetch('http://10.1.20.103:3000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -260,7 +259,7 @@ const Signup = ({ navigation }) => {
     borderColor: COLORS.black, 
     borderRadius: 8,          
   }}>
- <Picker
+ {/* <Picker
   selectedValue={selectedOption}
   onValueChange={(itemValue, itemIndex) => setSelectedOption(itemValue)}
   style={{ height: 45, textAlign: 'center'}} 
@@ -268,7 +267,7 @@ const Signup = ({ navigation }) => {
   {options.map((option, index) => (
     <Picker.Item key={index} label={option} value={option} />
   ))}
-</Picker>
+</Picker> */}
   </View>
 </View>
 

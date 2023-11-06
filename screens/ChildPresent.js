@@ -26,7 +26,7 @@ const ChildPresent = () => {
         childsName,
       };
 
-      const response = await fetch('http://192.168.1.16:3000/checkData', {
+      const response = await fetch('http://10.1.20.103:3000/checkData', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ const ChildPresent = () => {
       if (response.status === 200) {
         console.log('DATA PRESENT IN CUSTOMERS TABLE');
         //check if the child is present in the GeneralHistory table
-        const response1 = await fetch('http://192.168.1.16:3000/checkDataInGeneralHistory', {
+        const response1 = await fetch('http://10.1.20.103:3000/checkDataInGeneralHistory', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

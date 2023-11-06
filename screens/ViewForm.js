@@ -28,7 +28,7 @@ const ViewForm = ({ route }) => {
           childsName,
         };
         // fetchDeviceIpAddress();
-        const response = await fetch('http://192.168.1.16:3000/getFormData', {
+        const response = await fetch('http://10.1.20.103:3000/getFormData', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ const ViewForm = ({ route }) => {
             anganwadiNo,
             childsName,
           };
-        const siblingResponse = await fetch('http://192.168.1.16:3000/getSiblingData', {
+        const siblingResponse = await fetch('http://10.1.20.103:3000/getSiblingData', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

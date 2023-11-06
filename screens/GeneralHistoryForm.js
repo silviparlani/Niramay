@@ -223,7 +223,7 @@ const GeneralHistoryForm = () => {
         observationsAndSuggestions: generalHistory.observationsAndSuggestions,
       };
   
-      const response = await fetch('http://192.168.1.16:3000/generalHistory', {
+      const response = await fetch('http://10.1.20.103:3000/generalHistory', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -265,7 +265,7 @@ const GeneralHistoryForm = () => {
           observations: visit.observations,
         };
   
-        const response = await fetch('http://192.168.1.16:3000/visits', {
+        const response = await fetch('http://10.1.20.103:3000/visits', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

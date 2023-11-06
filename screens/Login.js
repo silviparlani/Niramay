@@ -23,7 +23,7 @@ const Login = ({ navigation }) => {
         };
       
         // Make a POST request to the server to validate login
-        fetch('http://192.168.1.16:3000/api/login', {
+        fetch('http://10.1.20.103:3000/api/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

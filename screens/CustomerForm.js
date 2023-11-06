@@ -145,7 +145,7 @@ const CustomerForm = () => {
         TotalSiblings:totalSiblings
       };
   
-      const response = await fetch('http://192.168.1.16:3000/submitForm', {
+      const response = await fetch('http://10.1.20.103:3000/submitForm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -182,7 +182,7 @@ const CustomerForm = () => {
     };
   
     // Send the sibling data to the server using fetch
-    fetch('http://192.168.1.16:3000/submit-sibling-data', requestOptions)
+    fetch('http://10.1.20.103:3000/submit-sibling-data', requestOptions)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
