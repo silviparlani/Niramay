@@ -1,79 +1,66 @@
-import { View, Text, Image , Pressable, TextInput, TouchableOpacity, FontAwesome, Alert } from 'react-native'
-import React, { useState } from 'react'
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from 'react';
+import { View, Text, Image, TextInput, TouchableOpacity, SafeAreaView, Pressable } from 'react-native';
 import COLORS from '../constants/colors';
-import { Ionicons } from "@expo/vector-icons";
-import Checkbox from "expo-checkbox"
+import Icon from 'react-native-vector-icons/Ionicons';
+import Checkbox from '@react-native-community/checkbox';
 import Button from '../components/Button';
-import { StatusBar } from 'react-native';
+import { API_URL } from './config.js';
 
-
+// Import your custom images
+import eyeImage from '../assets/view.png';
+import eyeOffImage from '../assets/hide.png';
 
 const Login = ({ navigation }) => {
     const [email, setEmail] = useState(''); // State for email input
     const [password, setPassword] = useState(''); // State for password input
     const [isPasswordShown, setIsPasswordShown] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
-
     const handleLogin = () => {
         // Prepare login data from form inputs
         const loginData = {
-          email: email,
-          password: password,
+            email: email,
+            password: password,
         };
-      
+        console.log(email, password);
         // Make a POST request to the server to validate login
-        fetch('http://10.1.20.103:3000/api/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(loginData),
+        fetch(`${API_URL}/api/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(loginData),
         })
-          .then((response) => {
-            if (!response.ok) {
-              if (response.status === 401) {
-                // User exists but password is incorrect
-                throw new Error('Invalid Email/Password.');
-              } else if (response.status === 404) {
-                // User does not exist
-                throw new Error('User does not exist. Please Sign up.');
-              } else {
-                throw new Error('Network response was not ok');
-              }
-            }
-            return response.json();
-          })
-          .then((data) => {
-            // Handle success (e.g., navigate to the home page)
-            navigation.navigate('HomePage');
-          })
-          .catch((error) => {
-            Alert.alert(
-              'Login Error',
-              error.message, // Display the specific error message
-              [
-                {
-                  text: 'OK',
-                  onPress: () => console.log('OK Pressed'),
-                },
-              ],
-              { cancelable: false }
-            );
-          });
-      };
-      
+            .then((response) => {
+                console.log(response);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                const { role, name } = data.user; // Assuming the server response includes 'role' and 'name' fields
+                console.log(role, name);
+                navigation.navigate('HomePage', { role, name });
+            })
+            .catch((error) => {
+                console.log("hello");
+                // Handle error (e.g., display error message)
+                console.error('Error logging in: ', error);
+            });
+    };
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
             <View style={{ flex: 1, marginHorizontal: 22 }}>
                 <View style={{ marginVertical: 5 }}>
-                    
+
 
                 </View>
-                
+
 
                 <View style={{ marginBottom: 12 }}>
                     <Text style={{
+                        color: COLORS.black,
                         fontSize: 17,
                         fontWeight: 400,
                         marginVertical: 8
@@ -96,7 +83,8 @@ const Login = ({ navigation }) => {
                             placeholderTextColor={COLORS.black}
                             keyboardType='email-address'
                             style={{
-                                width: "100%"
+                                width: "100%",
+                                color: COLORS.black
                             }}
                         />
                     </View>
@@ -104,6 +92,7 @@ const Login = ({ navigation }) => {
 
                 <View style={{ marginBottom: 12 }}>
                     <Text style={{
+                        color: COLORS.black,
                         fontSize: 17,
                         fontWeight: 400,
                         marginVertical: 8
@@ -126,6 +115,7 @@ const Login = ({ navigation }) => {
                             placeholderTextColor={COLORS.black}
                             secureTextEntry={isPasswordShown}
                             style={{
+                                color: COLORS.black,
                                 width: "100%"
                             }}
                         />
@@ -133,15 +123,16 @@ const Login = ({ navigation }) => {
                         <TouchableOpacity
                             onPress={() => setIsPasswordShown(!isPasswordShown)}
                             style={{
+                                color: COLORS.black,
                                 position: "absolute",
                                 right: 12
                             }}
                         >
                             {
-                                isPasswordShown == true ? (
-                                    <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                                isPasswordShown ? (
+                                    <Image source={eyeImage} style={{ width: 24, height: 24 }} />
                                 ) : (
-                                    <Ionicons name="eye" size={24} color={COLORS.black} />
+                                    <Image source={eyeOffImage} style={{ width: 24, height: 24 }} />
                                 )
                             }
 
@@ -154,13 +145,15 @@ const Login = ({ navigation }) => {
                     marginVertical: 6
                 }}>
                     <Checkbox
-                        style={{ marginRight: 8 }}
+                        style={{ color: COLORS.black, marginRight: 8 }}
                         value={isChecked}
                         onValueChange={setIsChecked}
                         color={isChecked ? COLORS.theme : undefined}
                     />
 
-                    <Text>Remember Me</Text>
+                    <Text style={{ color: COLORS.black, fontSize: 14 }}>
+                        Remember Me
+                    </Text>
                 </View>
 
                 <Button
@@ -173,7 +166,7 @@ const Login = ({ navigation }) => {
                     }}
                     onPress={handleLogin}
                 />
-               
+
 
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 20 }}>
                     <View
@@ -184,7 +177,7 @@ const Login = ({ navigation }) => {
                             marginHorizontal: 10
                         }}
                     />
-                    <Text style={{ fontSize: 14 }}>Or Login with</Text>
+                    <Text style={{ color: COLORS.black, fontSize: 14 }}>Or Login with</Text>
                     <View
                         style={{
                             flex: 1,
@@ -199,7 +192,7 @@ const Login = ({ navigation }) => {
                     flexDirection: 'row',
                     justifyContent: 'center'
                 }}>
-      
+
 
                     <TouchableOpacity
                         onPress={() => console.log("Pressed")}
@@ -212,8 +205,8 @@ const Login = ({ navigation }) => {
                             width: 2,
                             borderWidth: 1,
                             borderColor: COLORS.grey,
-                            
-                            
+
+
                             borderRadius: 10
                         }}
                     >
@@ -227,7 +220,7 @@ const Login = ({ navigation }) => {
                             resizeMode='contain'
                         />
 
-                        <Text>Google</Text>
+                        <Text style={{ color: COLORS.black, fontSize: 14 }}>Google</Text>
                     </TouchableOpacity>
                 </View>
 

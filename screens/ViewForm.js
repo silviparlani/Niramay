@@ -1,25 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
+import { View, Text,TextInput, ActivityIndicator, StyleSheet, ScrollView,TouchableOpacity,Switch} from 'react-native';
 // import NetInfo from '@react-native-community/netinfo';
-
+import { API_URL } from './config.js';
 const ViewForm = ({ route }) => {
   const { anganwadiNo, childsName } = route.params;
   const [formData, setFormData] = useState(null);
-  console.log(formData);
   const [siblingsData, setSiblingsData] = useState([]); 
   const [loading, setLoading] = useState(true);
-//   const fetchDeviceIpAddress = async () => {
-//     try {
-//       const state = await NetInfo.fetch();
-//       const ipAddress = state.details.ip; // Use 'ip' property
-//       console.log('Device IP Address:', ipAddress);
-//     } catch (error) {
-//       console.error('Error fetching device IP address:', error);
-//     }
-//   };
+  const [siblings, setSiblings] = useState([]);
+  const [updatedSiblings, setUpdatedSiblings] = useState([]);
   
-  // Call the function to fetch the IP address
- 
+
+
+  const handleAddSibling = () => {
+    setSiblings([...siblings, { name: '', age: '', malnourished: false }]);
+    const newSibling = { name: '', age: '', malnourished: false };
+      setUpdatedSiblings([...updatedSiblings, newSibling]);
+
+  };
+
+  const handleRemoveSibling = (index) => {
+    const updatedSiblings = [...siblings];
+    updatedSiblings.splice(index, 1);
+    setSiblings(updatedSiblings);
+  };
+
+  const handleSiblingFieldChange = (index, field, value) => {
+    const updatedSiblings = [...siblings];
+    updatedSiblings[index][field] = value;
+    setSiblings(updatedSiblings);
+  };
+  
+  const handleSaveChanges = async () => {
+    try {
+      // Prepare the data to be sent to the server
+      const requestData = {
+        anganwadiNo,
+        childsName,
+        siblings: siblings, // Updated siblings data
+      };
+      console.log("hello");
+    console.log(requestData);
+      // Send a POST request to save the siblings data
+      
+      const response = await fetch(`${API_URL}/submit-sibling`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+  
+      if (response.status === 200) {
+        // Data saved successfully, you can perform any additional actions here
+        console.log('Siblings data saved successfully');
+      } else {
+        console.log('Failed to save siblings data');
+      }
+    } catch (error) {
+      console.error('Error saving siblings data:', error);
+    }
+  };
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -28,7 +70,7 @@ const ViewForm = ({ route }) => {
           childsName,
         };
         // fetchDeviceIpAddress();
-        const response = await fetch('http://10.1.20.103:3000/getFormData', {
+        const response = await fetch(`${API_URL}/getFormData`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -38,7 +80,6 @@ const ViewForm = ({ route }) => {
 
         if (response.status === 200) {
           const data = await response.json();
-          console.log(data);
           setFormData(data);
         } else {
           console.log('Data not found in the database');
@@ -60,7 +101,7 @@ const ViewForm = ({ route }) => {
             anganwadiNo,
             childsName,
           };
-        const siblingResponse = await fetch('http://10.1.20.103:3000/getSiblingData', {
+        const siblingResponse = await fetch(`${API_URL}/getSiblingData`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -91,6 +132,7 @@ const ViewForm = ({ route }) => {
 //       </View>
 //     ));
 //   };
+
   return (
     <ScrollView style={styles.container}>
       {loading ? (
@@ -100,46 +142,49 @@ const ViewForm = ({ route }) => {
           <View style={styles.fieldContainer}>
           <Text style={styles.subSectionTitle}>Bit Information / बिट माहिती</Text>
             <Text style={styles.label}>Bit Name:</Text>
-            <Text style={styles.text}>{formData.bitName}</Text>
+            <Text style={styles.text}>{formData.bit_name}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Anganwadi No.:</Text>
-            <Text style={styles.text}>{formData.anganwadiNo}</Text>
+            <Text style={styles.text}>{formData.anganwadi_no}</Text>
           </View>
 
           <Text style={styles.subSectionTitle}>Anganwadi Assistant Information/अंगणवाडी सहाय्यकांची माहिती </Text>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Anganwadi Assistance Name:</Text>
-            <Text style={styles.text}>{formData.assistantName}</Text>
+            <Text style={styles.text}>{formData.assistant_name}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Anganwadi Assistance Phone no. :</Text>
-            <Text style={styles.text}>{formData.assistantPhone}</Text>
+            <Text style={styles.text}>{formData.assistant_phone}</Text>
           </View>
 
           <Text style={styles.subSectionTitle}>Child Information / मुलांची माहिती</Text>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Child's Name:</Text>
-            <Text style={styles.text}>{formData.childName}</Text>
+            <Text style={styles.text}>{formData.child_name}</Text>
           </View>
 
+          
           <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Child's DOB:</Text>
-            <Text style={styles.text}>{formData.childDob}</Text>
-          </View>
+  <Text style={styles.label}>Child's DOB:</Text>
+  <Text style={styles.text}>
+    {formData.child_dob ? new Date(formData.child_dob).toISOString().split('T')[0] : 'N/A'}
+  </Text>
+</View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Child's Gender</Text>
-            <Text style={styles.text}>{formData.childGender}</Text>
+            <Text style={styles.text}>{formData.child_gender}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Parents Phone no.</Text>
-            <Text style={styles.text}>{formData.childPhone}</Text>
+            <Text style={styles.text}>{formData.child_phone}</Text>
           </View>
 
           <Text style={styles.subSectionTitle}>Parent Information / अभिभावकांची माहिती</Text>
@@ -147,47 +192,47 @@ const ViewForm = ({ route }) => {
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Mother's Name: </Text>
-            <Text style={styles.text}>{formData.motherName}</Text>
+            <Text style={styles.text}>{formData.mother_name}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Mother's Education:</Text>
-            <Text style={styles.text}>{formData.motherEducation}</Text>
+            <Text style={styles.text}>{formData.mother_education}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Mothers's Occupation:</Text>
-            <Text style={styles.text}>{formData.motherOccupation}</Text>
+            <Text style={styles.text}>{formData.mother_occupation}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Mothers age at Marriage:</Text>
-            <Text style={styles.text}>{formData.motherAgeAtMarriage}</Text>
+            <Text style={styles.text}>{formData.mother_age_at_marriage}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Mothers age during First Pregnancy:</Text>
-            <Text style={styles.text}>{formData.motherAgeAtFirstPregnancy}</Text>
+            <Text style={styles.text}>{formData.mother_age_at_first_pregnancy}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Child's weight after Birth:</Text>
-            <Text style={styles.text}>{formData.childWeightAfterBirth}</Text>
+            <Text style={styles.text}>{formData.child_weight_after_birth}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Father's Name: </Text>
-            <Text style={styles.text}>{formData.fatherName}</Text>
+            <Text style={styles.text}>{formData.father_name}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Fathers's Occupation:</Text>
-            <Text style={styles.text}>{formData.fatherOccupation}</Text>
+            <Text style={styles.text}>{formData.father_occupation}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Father's Education :</Text>
-            <Text style={styles.text}>{formData.fatherEducation}</Text>
+            <Text style={styles.text}>{formData.father_education}</Text>
           </View>
 
           <Text style={styles.subSectionTitle}>Information of Family / कुटुंबाची माहिती</Text>
@@ -195,7 +240,7 @@ const ViewForm = ({ route }) => {
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>No. of Total Family Members:</Text>
-            <Text style={styles.text}>{formData.totalFamilyMembers}</Text>
+            <Text style={styles.text}>{formData.total_family_members}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
@@ -221,6 +266,45 @@ const ViewForm = ({ route }) => {
   </View>
 ))}
 
+{siblings.map((sibling, index) => (
+  <View key={index} style={styles.siblingTableRow}>
+    {/* Sibling Name */}
+    <TextInput
+      style={[styles.siblingTableCell, { flex: 2 },]}
+      value={sibling.name}
+      onChangeText={(value) => handleSiblingFieldChange(index, 'name', value)}
+      placeholder={`Enter name`}
+    />
+    {/* Sibling Age */}
+    <TextInput
+      style={[styles.siblingTableCell, { flex: 1 }]}
+      value={sibling.age}
+      onChangeText={(value) => handleSiblingFieldChange(index, 'age', value)}
+      placeholder={`Age`}
+      keyboardType="numeric"
+    />
+    {/* Malnourished */}
+    <View style={[styles.siblingTableCell, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+      <Switch
+        value={sibling.malnourished}
+        onValueChange={(value) => handleSiblingFieldChange(index, 'malnourished', value)}
+      />
+    </View>
+    
+    {/* Remove Sibling Button */}
+    <TouchableOpacity onPress={() => handleRemoveSibling(index)} style={styles.removeButton}>
+      <Text style={styles.removeButtonText}>Remove</Text>
+    </TouchableOpacity>
+  </View>
+))}
+<TouchableOpacity style={styles.addButton} onPress={handleAddSibling}>
+        <Text style={styles.addButtonLabel}>Add</Text>
+      </TouchableOpacity>
+   {/* Save Changes Button */}
+   <TouchableOpacity style={styles.saveChangesButton} onPress={handleSaveChanges}>
+            <Text style={styles.saveChangesButtonText}>Save Changes</Text>
+          </TouchableOpacity>
+
          
         <View style={styles.fieldContainer}>
             <Text style={styles.label}>Disease History :</Text>
@@ -234,7 +318,7 @@ const ViewForm = ({ route }) => {
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Source of Drinking Water:</Text>
-            <Text style={styles.text}>{formData.sourceOfDrinkingWater}</Text>
+            <Text style={styles.text}>{formData.source_of_drinking_water}</Text>
           </View>
 
           <View style={styles.fieldContainer}>
@@ -314,6 +398,109 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  separator: {
+    height: 1,
+    backgroundColor: 'gray', // Choose a color for the separator line
+    marginVertical: 5,
+    marginBottom: 20,
+  },
+  siblingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  addButton: {
+    backgroundColor: 'teal',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+ 
+    borderRadius: 8,
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    marginBottom: 15,
+  },
+  addButtonLabel: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  siblingTableHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+    marginRight: 85,
+    borderBottomWidth: 1,
+    paddingBottom: 8,
+  },
+  siblingTableHeaderCell: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+   
+  },
+  siblingTableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  siblingTableCell: {
+    fontSize: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    // flex: 1,
+  },
+  removeButton: {
+    backgroundColor: 'red',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    marginLeft: 12,
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 14,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    marginTop:8
+  },
+  checkboxChecked: {
+    backgroundColor: 'teal',
+    borderColor: 'teal',
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    marginTop:8
+  },
+ 
+  input: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#bdc3c7',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    fontSize: 16,
+  },
+  textArea: {
+    height: 45, // Adjust the height as needed
+    textAlignVertical: 'center', // Start typing from the top
+  },
+  
   
 });
 

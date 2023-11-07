@@ -14,6 +14,15 @@ import IsChild from './screens/IsChild';
 import ChildReport from './screens/ChildReport'
 import GeneralHistoryDisplay from './screens/GeneralHistoryDisplay';
 import ConsolidatedReports from './screens/ConsolidatedReports';
+import BitNamevsGender from './screens/BitNamevsGender';
+import GradeDistribution from './screens/GradeDistribution'
+import Reports from './screens/Reports';
+import HeightPerChild from './screens/HeightPerChild'
+import WeightPerChild from './screens/WeightPerChild'
+import HaemoglobinPerChild from './screens/HaemoglobinPerChild'
+import GradePerChild from './screens/GradePerChild'
+import AnganwadiCountvsBit_name from './screens/AnganwadiCountvsBit_name';
+import BitNamevsGenderGraph from './screens/BitNamevsGenderGraph';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -192,6 +201,138 @@ export default function App() {
               title: "Report",
             }}
           />
+
+
+          <Stack.Screen
+            name="BitNamevsGender"
+            component={BitNamevsGender}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+          <Stack.Screen
+            name="GradeDistribution"
+            component={GradeDistribution}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+          <Stack.Screen
+            name="AnganwadiCountvsBit_name"
+            component={AnganwadiCountvsBit_name}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+
+          <Stack.Screen
+            name="Reports"
+            component={Reports}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+
+          <Stack.Screen
+            name="HeightPerChild"
+            component={HeightPerChild}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+
+
+          <Stack.Screen
+            name="WeightPerChild"
+            component={WeightPerChild}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+
+
+          <Stack.Screen
+            name="HaemoglobinPerChild"
+            component={HaemoglobinPerChild}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+
+          <Stack.Screen
+            name="GradePerChild"
+            component={GradePerChild}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+
+          <Stack.Screen
+            name="BitNamevsGenderGraph"
+            component={BitNamevsGenderGraph}
+            options={{
+              // headerShown: false,
+              headerStyle: {
+                backgroundColor: COLORS.theme, // Set your desired background color
+
+              },
+              headerTintColor: COLORS.white,
+              title: "Report",
+            }}
+          />
+
+
+
+
+
 
 
         </Stack.Navigator>

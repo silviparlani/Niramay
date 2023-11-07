@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ImageBackground, ToastAndroid } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ImageBackground,ToastAndroid} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import COLORS from '../constants/colors';
+
 
 
 const ChildPresent = () => {
   const navigation = useNavigation();
-  const [isChildPresent, setIsChildPresent] = useState(false);
-  const [isChildPresentInGeneralHistory, setIsChildPresentInGeneralHistory] = useState(false);
+  const [isChildPresent, setIsChildPresent] = useState(false); 
   const [anganwadiNo, setAnganwadiNo] = useState('');
   const [childsName, setChildsName] = useState('');
-
-  const handleUpdateForm = () => {
-    
-  };
 
   const handleViewForm = () => {
     navigation.navigate('GeneralHistoryDisplay', { anganwadiNo, childsName });
@@ -25,62 +22,35 @@ const ChildPresent = () => {
         anganwadiNo,
         childsName,
       };
-
-      const response = await fetch('http://10.1.20.103:3000/checkData', {
+      
+      const response = await fetch('http://192.168.1.34:3000/checkData', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestData),
       });
-      console.log(response.status);
-      if (response.status === 200) {
-        console.log('DATA PRESENT IN CUSTOMERS TABLE');
-        //check if the child is present in the GeneralHistory table
-        const response1 = await fetch('http://10.1.20.103:3000/checkDataInGeneralHistory', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestData),
-        });
-        console.log(response1.status);
 
-        if (response1.status == 200) {
-          setIsChildPresentInGeneralHistory(true);
-          //data exists in GeneralHistory table
-          ToastAndroid.showWithGravityAndOffset(
-            'General History information already filled. Press the View button to view the form.',
+      if (response.status === 200) {
+        setIsChildPresent(true);
+        // Data exists in the database, you can navigate to the next screen or perform other actions
+        console.log('Data exists in the database');
+        console.log('Anganwadi Number: ', anganwadiNo);
+        console.log('Child Name: ', childsName);
+        navigation.navigate('GeneralHistoryForm', {
+            anganwadiNo: anganwadiNo,
+            childsName: childsName,
+          });          
+        
+      } else {
+        // Data does not exist in the database
+        ToastAndroid.showWithGravityAndOffset(
+            'Data not present in database. Add personal infroamtion of the child first.',
             ToastAndroid.LONG,
             ToastAndroid.BOTTOM,
             50,
             180
           );
-        }
-        else {
-
-          setIsChildPresent(true);
-          // Data exists in the database, you can navigate to the GeneralHistoryForm screen
-          console.log('Data exists in the database');
-          console.log('Anganwadi Number: ', anganwadiNo);
-          console.log('Child Name: ', childsName);
-          navigation.navigate('GeneralHistoryForm', {
-            anganwadiNo: anganwadiNo,
-            childsName: childsName,
-          });
-        }
-
-
-      } else {
-        console.log('DATA NOT PRESENT IN CUSTOMERS TABLE');
-        // Data does not exist in the database
-        ToastAndroid.showWithGravityAndOffset(
-          'Data not present in database. Add personal infroamtion of the child first.',
-          ToastAndroid.LONG,
-          ToastAndroid.BOTTOM,
-          50,
-          180
-        );
         console.log("Data doesn't exist in the database");
       }
     } catch (error) {
@@ -101,6 +71,7 @@ const ChildPresent = () => {
             <TextInput
               style={styles.input}
               placeholder="Enter Anganwadi No."
+              placeholderTextColor={COLORS.black}
               value={anganwadiNo}
               onChangeText={(text) => setAnganwadiNo(text)}
             />
@@ -111,6 +82,7 @@ const ChildPresent = () => {
             <TextInput
               style={styles.input}
               placeholder="Enter Child's Name"
+              placeholderTextColor={COLORS.black}
               value={childsName}
               onChangeText={(text) => setChildsName(text)}
             />
@@ -120,24 +92,12 @@ const ChildPresent = () => {
             <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>
 
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={styles.submitButton}
             onPress={handleViewForm}
           >
-            <Text style={styles.buttonText}>View</Text>
-          </TouchableOpacity> */}
-
-          {isChildPresentInGeneralHistory && (
-            <TouchableOpacity style={styles.submitButton} onPress={handleViewForm}>
-              <Text style={styles.buttonText}>View Form</Text>
-            </TouchableOpacity>
-          )}
-
-          {isChildPresentInGeneralHistory && (
-            <TouchableOpacity style={styles.submitButton} onPress={handleUpdateForm}>
-              <Text style={styles.buttonText}>Update Form</Text>
-            </TouchableOpacity>
-          )}
+  <Text style={styles.buttonText}>View</Text>
+</TouchableOpacity>
 
         </View>
       </ScrollView>
@@ -157,7 +117,7 @@ const styles = StyleSheet.create({
     padding: 16,
     elevation: 3, // Add elevation for a subtle shadow on Android
     minHeight: 300, // Increase the minimum height of the form container
-
+    
   },
   field: {
     marginBottom: 20,
@@ -166,6 +126,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     fontWeight: 'bold',
+    color:COLORS.black,
   },
   input: {
     height: 40,
@@ -173,6 +134,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 10,
+    color:COLORS.black,
   },
   submitButton: {
     backgroundColor: 'teal',

@@ -11,6 +11,8 @@ import {
     StatusBar,
     FlatList,
 } from 'react-native';
+import COLORS from '../constants/colors';
+import { API_URL } from './config';
 
 const GeneralHistoryDisplay = ({ route }) => {
     const { anganwadiNo, childsName } = route.params;
@@ -37,7 +39,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                     anganwadiNo,
                     childsName,
                 };
-                const response = await fetch('http://10.1.20.103:3000/getGeneralHistory', {
+                const response = await fetch(`${API_URL}/getGeneralHistory`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -68,7 +70,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                     anganwadiNo,
                     childsName,
                 };
-                const visitsResponse = await fetch('http://10.1.20.103:3000/getVisits', {
+                const visitsResponse = await fetch(`${API_URL}/getVisits`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -109,23 +111,6 @@ const GeneralHistoryDisplay = ({ route }) => {
         });
     };
 
-    // const handleSaveVisit = () => {
-    //     // Save the new visit data to the visitsData state and reset the newVisit state.
-    //     setVisitsData([...visitsData, newVisit]);
-    //     setNewVisit({
-    //         date: '',
-    //         noOfSupplements: '',
-    //         haemoglobin: '',
-    //         muac: '',
-    //         weight: '',
-    //         height: '',
-    //         difference: '',
-    //         grade: '',
-    //         observations: '',
-    //     });
-    //     setAddVisitMode(false);
-    // };
-
     const handleSaveVisit = async () => {
         try {
             const requestData = {
@@ -142,7 +127,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                 observations: newVisit.observations,
             };
     
-            const response = await fetch('http://10.1.20.103:3000/visits', {
+            const response = await fetch(`${API_URL}/visits`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -258,8 +243,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                             <Text style={styles.text}>{healthData.appetiteTest}</Text>
                             <Text style={styles.label}>Thirst:</Text>
                             <Text style={styles.text}>{healthData.thirst}</Text>
-                            {/* <Text style={styles.label}>Haemoglobin:</Text>
-                            <Text style={styles.text}>{healthData.haemoglobin}</Text> */}
+
                             <Text style={styles.label}>Motion:</Text>
                             <Text style={styles.text}>{healthData.motion}</Text>
                             <Text style={styles.label}>Observations and Suggestions:</Text>
@@ -283,11 +267,12 @@ const GeneralHistoryDisplay = ({ route }) => {
                                 value={newVisit.date}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, date: text })}
                                 placeholder="DD-MM-YYYY"
+                                placeholderTextColor={COLORS.black}
                                 keyboardType="phone-pad"
                                 maxLength={10}
                                 style={styles.textInput}
                             />
-                            <Text style={{ fontSize: 16 }}>No. of Supplements:</Text>
+                            <Text style={styles.label}>No. of Supplements:</Text>
                             <TextInput
                                 value={newVisit.noOfSupplements}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, noOfSupplements: text })}
@@ -295,7 +280,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                                 style={styles.textInput}
                             />
 
-                            <Text style={{ fontSize: 16 }}>Haemoglobin:</Text>
+                            <Text style={styles.label}>Haemoglobin:</Text>
                             <TextInput
                                 value={newVisit.haemoglobin}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, haemoglobin: text })}
@@ -304,7 +289,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                                 style={styles.textInput}
                             />
 
-                            <Text style={{ fontSize: 16 }}>MUAC:</Text>
+                            <Text style={styles.label}>MUAC:</Text>
                             <TextInput
                                 value={newVisit.muac}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, muac: text })}
@@ -312,7 +297,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                                 style={styles.textInput}
                             />
 
-                            <Text style={{ fontSize: 16 }}>Weight (Kg):</Text>
+                            <Text style={styles.label}>Weight (Kg):</Text>
                             <TextInput
                                 value={newVisit.weight}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, weight: text })}
@@ -320,7 +305,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                                 style={styles.textInput}
                             />
 
-                            <Text style={{ fontSize: 16 }}>Height (cm):</Text>
+                            <Text style={styles.label}>Height (cm):</Text>
                             <TextInput
                                 value={newVisit.height}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, height: text })}
@@ -329,20 +314,20 @@ const GeneralHistoryDisplay = ({ route }) => {
                             />
 
 
-                            <Text style={{ fontSize: 16 }}>Difference:</Text>
+                            <Text style={styles.label}>Difference:</Text>
                             <TextInput
                                 value={newVisit.difference}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, difference: text })}
                                 style={styles.textInput}
                             />
 
-                            <Text style={{ fontSize: 16 }}>Grade:</Text>
+                            <Text style={styles.label}>Grade:</Text>
                             <TextInput
                                 value={newVisit.grade}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, grade: text })}
                                 style={styles.textInput}
                             />
-                            <Text style={{ fontSize: 16 }}>Observations & Suggestions:</Text>
+                            <Text style={styles.label}>Observations & Suggestions:</Text>
                             <TextInput
                                 value={newVisit.observations}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, observations: text })}
@@ -400,14 +385,17 @@ const styles = StyleSheet.create({
     subSectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
+        color:COLORS.black,
     },
     label: {
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 5,
+        color:COLORS.black,
     },
     text: {
         fontSize: 16,
+        color:COLORS.black,
     },
     separator: {
         height: 1,
@@ -442,6 +430,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 10,
         marginBottom: 10,
+        color:COLORS.black,
     },
     saveVisitButton: {
         backgroundColor: 'teal',

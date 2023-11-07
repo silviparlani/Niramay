@@ -20,8 +20,8 @@ app.use((req, res, next) => {
 const db = mysql.createConnection({
   host: 'localhost', // Replace with your MySQL host
   user: 'root',      // Replace with your MySQL user
-  password: 'niramay',  // Resplace with your MySQL password
-  database: 'niramay', // Replace with your MySQL database name
+  password: 'root@123',  // Resplace with your MySQL password
+  database: 'ngo', // Replace with your MySQL database name
 });
 
 db.connect((err) => {
@@ -613,52 +613,8 @@ app.get('/childDataGender', (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
   
 // Start the server
-app.listen(port,() => {
+app.listen(port,'0.0.0.0',() => {
   console.log(`Server is running on port ${port}`);
 });
-// const express = require('express');
-// const mysql = require('mysql2');
-// const app = express();
-// const cors = require('cors');
-
-// // ...
-
-// app.use(cors());
-// const db = mysql.createConnection({
-//   host: 'localhost',
-//   user: 'root',
-//   password: 'niramay',
-//   database: 'niramay',
-// });
-
-// db.connect((err) => {
-//   if (err) {
-//     throw err;
-//   }
-//   console.log('MySQL Connected');
-// });
-
-// app.get('/data', (req, res) => {
-//   db.query('SELECT * FROM users ', (err, results) => {
-//     if (err) throw err;
-//     res.json(results);
-//   });
-// });
-
-// app.get('/', (req, res) => {
-//   res.send('hi');
-// });
-
-// app.listen(3000, () => {
-//   console.log('Server is running on port 3000');
-// });

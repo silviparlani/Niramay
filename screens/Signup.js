@@ -1,122 +1,66 @@
-import { View, Text, Image, Pressable, TextInput, TouchableOpacity} from 'react-native'
-import React, { useState } from 'react'
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from 'react';
+import { View, Text, Image, TextInput, TouchableOpacity, SafeAreaView, Pressable } from 'react-native';
 import COLORS from '../constants/colors';
-import { Ionicons } from "@expo/vector-icons";
-import Checkbox from "expo-checkbox"
+import Checkbox from '@react-native-community/checkbox';
 import Button from '../components/Button';
+import { API_URL } from './config.js';
+import eyeImage from '../assets/view.png';
+import eyeOffImage from '../assets/hide.png';
+import ModalDropdown from 'react-native-modal-dropdown'; // Import the ModalDropdown component
 
 const Signup = ({ navigation }) => {
     const [isPasswordShown, setIsPasswordShown] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
-    const [selectedOption, setSelectedOption] = useState('Assistant'); // Initial selected option
+    const [selectedOption, setSelectedOption] = useState('Assistant');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [emailValidationMessage, setEmailValidationMessage] = useState('');
-    const [passwordValidationMessage, setPasswordValidationMessage] = useState('');
 
     const options = ['Assistant', 'Doctor', 'Supervisor'];
 
-    const validateEmail = (email) => {
-        const emailPattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
-      
-        if (!emailPattern.test(email)) {
-          setEmailValidationMessage('Please enter a valid email address');
-        } else {
-          setEmailValidationMessage('');
-        }
-      };
-    
-      const validatePassword = (password) => {
-        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!])(?=.{8,})/;
-        return passwordPattern.test(password);
-      };
-
     const handleSignUp = () => {
-    const userData = {
-      name: name,
-      email: email,
-      password: password,
-      phoneNumber: phoneNumber,
-      post: selectedOption,
+        const userData = {
+            name: name,
+            email: email,
+            password: password,
+            phoneNumber: phoneNumber,
+            post: selectedOption,
+        };
+
+        fetch(`${API_URL}/api/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                navigation.navigate('Login');
+            })
+            .catch((error) => {
+                console.error('Error signing up: ', error);
+            });
     };
-
-    if (!emailValidationMessage) {
-      if (!validatePassword(password)) {
-        setPasswordValidationMessage('Password does not meet the criteria.');
-        return;
-      }
-
-      setPasswordValidationMessage('');
-      
-      fetch('http://10.1.20.103:3000/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      })
-        .then((response) => {   
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          navigation.navigate('Login');
-        })
-        .catch((error) => {
-          console.error('Error signing up: ', error);
-        });
-    }
-  };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
             <View style={{ flex: 1, marginHorizontal: 22 }}>
                 <View style={{ marginVertical: 5 }}>
-                    
-
-                    
                 </View>
                 <View style={{ marginBottom: 12 }}>
-  <Text style={{
-    fontSize: 17,
-    fontWeight: 400,
-    marginVertical: 8
-  }}>Name / नाव</Text>
-
-  <View style={{
-    width: "100%",
-    height: 45,
-    borderColor: COLORS.black,
-    borderWidth: 1,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingLeft: 22
-  }}>
-    <TextInput
-      placeholder='Enter your full name'
-      placeholderTextColor={COLORS.black}
-      style={{
-        width: "100%"
-      }}
-      value={name}
-      onChangeText={(text) => setName(text)}
-    />
-  </View>
-</View>
-
-                <View style={{ marginBottom: 12 }}>
                     <Text style={{
+                        color: COLORS.black,
                         fontSize: 17,
                         fontWeight: 400,
-                        marginVertical: 5
-                    }}>Email address / ईमेल</Text>
-
+                        marginVertical: 8
+                    }}>Name / नाव</Text>
                     <View style={{
                         width: "100%",
                         height: 45,
@@ -128,88 +72,99 @@ const Signup = ({ navigation }) => {
                         paddingLeft: 22
                     }}>
                         <TextInput
-              placeholder='Enter your email address'
-              placeholderTextColor={COLORS.black}
-              keyboardType='email-address'
-              style={{
-                width: "100%"
-              }}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                validateEmail(text);
-              }}
-            />
-          </View>
-          {/* Email validation message */}
-          {emailValidationMessage ? (
-            <Text style={{ color: 'red' }}>{emailValidationMessage}</Text>
-          ) : null}
-        </View>
-
-
-        <View style={{ marginBottom: 12 }}>
-          <Text style={{
-            fontSize: 17,
-            fontWeight: 400,
-            marginVertical: 5
-          }}>Password / पासवर्ड</Text>
-          <View style={{
-            width: "100%",
-            height: 45,
-            borderColor: COLORS.black,
-            borderWidth: 1,
-            borderRadius: 8,
-            alignItems: "center",
-            justifyContent: "center",
-            paddingLeft: 22
-          }}>
-            <TextInput
-              placeholder='Enter your password'
-              placeholderTextColor={COLORS.black}
-              secureTextEntry={isPasswordShown}
-              style={{
-                width: "100%"
-              }}
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                const isValid = validatePassword(text);
-                if (!isValid) {
-                    setPasswordValidationMessage('Password must have at least one lowercase letter, one uppercase letter, one digit, one special character, and a minimum length of 8 characters.');
-                } else {
-                  setPasswordValidationMessage('');
-                }
-              }}
-            />
-            <TouchableOpacity
-              onPress={() => setIsPasswordShown(!isPasswordShown)}
-              style={{
-                position: "absolute",
-                right: 12
-              }}
-            >
-              {
-                isPasswordShown ? (
-                  <Ionicons name="eye-off" size={24} color={COLORS.black} />
-                ) : (
-                  <Ionicons name="eye" size={24} color={COLORS.black} />
-                )
-              }
-            </TouchableOpacity>
-          </View>
-          {passwordValidationMessage ? (
-            <Text style={{ color: 'red' }}>{passwordValidationMessage}</Text>
-          ) : null}
-        </View>
-
+                            placeholder='Enter your name'
+                            placeholderTextColor={COLORS.black}
+                            style={{
+                                color: COLORS.black,
+                                width: "100%"
+                            }}
+                            value={name}
+                            onChangeText={(text) => setName(text)}
+                        />
+                    </View>
+                </View>
                 <View style={{ marginBottom: 12 }}>
                     <Text style={{
+                        color: COLORS.black,
+                        fontSize: 17,
+                        fontWeight: 400,
+                        marginVertical: 5
+                    }}>Email address / ईमेल</Text>
+                    <View style={{
+                        width: "100%",
+                        height: 45,
+                        borderColor: COLORS.black,
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingLeft: 22
+                    }}>
+                        <TextInput
+                            placeholder='Enter your email address'
+                            placeholderTextColor={COLORS.black}
+                            keyboardType='email-address'
+                            style={{
+                                color: COLORS.black,
+                                width: "100%"
+                            }}
+                            value={email}
+                            onChangeText={(text) => setEmail(text)}
+                        />
+                    </View>
+                </View>
+                <View style={{ marginBottom: 12 }}>
+                    <Text style={{
+                        color: COLORS.black,
+                        fontSize: 17,
+                        fontWeight: 400,
+                        marginVertical: 5
+                    }}>Password / पासवर्ड</Text>
+                    <View style={{
+                        width: "100%",
+                        height: 45,
+                        borderColor: COLORS.black,
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingLeft: 22
+                    }}>
+                        <TextInput
+                            placeholder='Enter your password'
+                            placeholderTextColor={COLORS.black}
+                            secureTextEntry={isPasswordShown}
+                            style={{
+                                color: COLORS.black,
+                                width: "100%"
+                            }}
+                            value={password}
+                            onChangeText={(text) => setPassword(text)}
+                        />
+                        <TouchableOpacity
+                            onPress={() => setIsPasswordShown(!isPasswordShown)}
+                            style={{
+                                position: "absolute",
+                                right: 12
+                            }}
+                        >
+                            {
+                                isPasswordShown ? (
+                                    <Image source={eyeImage} style={{ width: 24, height: 24 }} />
+                                ) : (
+                                    <Image source={eyeOffImage} style={{ width: 24, height: 24 }} />
+                                )
+                            }
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={{ marginBottom: 12 }}>
+                    <Text style={{
+                        color: COLORS.black,
                         fontSize: 17,
                         fontWeight: 400,
                         marginVertical: 5
                     }}>Mobile Number / फोन नंबर</Text>
-
                     <View style={{
                         width: "100%",
                         height: 45,
@@ -226,53 +181,45 @@ const Signup = ({ navigation }) => {
                             placeholderTextColor={COLORS.black}
                             keyboardType='numeric'
                             style={{
+                                color: COLORS.black,
                                 width: "12%",
                                 borderRightWidth: 1,
                                 borderLeftColor: COLORS.grey,
                                 height: "100%"
                             }}
-                            
                         />
-
                         <TextInput
                             placeholder='Enter your phone number'
                             placeholderTextColor={COLORS.black}
                             keyboardType='numeric'
-                            maxLength={10}
                             style={{
+                                color: COLORS.black,
                                 width: "80%"
                             }}
                             value={phoneNumber}
                             onChangeText={(text) => setPhoneNumber(text)}
                         />
                     </View>
-
-                     {/* Dropdown */}
-                     <View style={{ marginBottom: 12 }}>
-  <Text style={{
-    fontSize: 17,
-    fontWeight: 400,
-    marginVertical: 5
-  }}>Post / हुददा</Text>
-  <View style={{
-    borderWidth: 1,          
-    borderColor: COLORS.black, 
-    borderRadius: 8,          
-  }}>
- {/* <Picker
-  selectedValue={selectedOption}
-  onValueChange={(itemValue, itemIndex) => setSelectedOption(itemValue)}
-  style={{ height: 45, textAlign: 'center'}} 
->
-  {options.map((option, index) => (
-    <Picker.Item key={index} label={option} value={option} />
-  ))}
-</Picker> */}
-  </View>
-</View>
-
                 </View>
-
+                <View style={{ marginBottom: 12 }}>
+                    <Text style={{
+                        fontSize: 17,
+                        fontWeight: 400,
+                        marginVertical: 5
+                    }}>Post / हुददा</Text>
+                    <ModalDropdown
+                        options={options}
+                        defaultValue={selectedOption}
+                        textStyle={{ fontSize: 16, color: COLORS.black }}
+                        dropdownTextStyle={{ fontSize: 16, color: COLORS.black }}
+                        onSelect={(index, value) => setSelectedOption(value)}
+                        style={{
+                            borderColor: COLORS.black,
+                            borderWidth: 1,
+                            borderRadius: 8,
+                        }}
+                    />
+                </View>
                 <View style={{
                     flexDirection: 'row',
                     marginVertical: 3
@@ -280,13 +227,9 @@ const Signup = ({ navigation }) => {
                     <Checkbox
                         style={{ marginRight: 8 }}
                         value={isChecked}
-                        onValueChange={(value) => {
-                            setIsChecked(value);
-                            console.log('isChecked:', value); // Add this line
-                          }}
+                        onValueChange={setIsChecked}
                         color={isChecked ? COLORS.theme : undefined}
-                        />
-
+                    />
                     <Text>I agree to the terms and conditions</Text>
                 </View>
                 <Button
@@ -303,11 +246,8 @@ const Signup = ({ navigation }) => {
                         color: 'white'
                     }}
                     onPress={handleSignUp}
-                    disabled={!isChecked} // Disable the button if isChecked is false
-                    >
-                        {console.log('Button disabled:', !isChecked)}
-                    </Button>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 20 }}>
+                />
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 20 }}>
                     <View
                         style={{
                             flex: 1,
@@ -316,7 +256,7 @@ const Signup = ({ navigation }) => {
                             marginHorizontal: 10
                         }}
                     />
-                    <Text style={{ fontSize: 14 }}>Or Sign up with</Text>
+                    <Text style={{ fontSize: 14, color: COLORS.black }}>Or Sign up with</Text>
                     <View
                         style={{
                             flex: 1,
@@ -326,13 +266,10 @@ const Signup = ({ navigation }) => {
                         }}
                     />
                 </View>
-
                 <View style={{
                     flexDirection: 'row',
                     justifyContent: 'center'
                 }}>
-                    
-
                     <TouchableOpacity
                         onPress={() => console.log("Pressed")}
                         style={{
@@ -341,12 +278,11 @@ const Signup = ({ navigation }) => {
                             justifyContent: 'center',
                             flexDirection: 'row',
                             height: 50,
-                            width:1,
+                            width: 1,
                             borderWidth: 1,
                             borderColor: COLORS.grey,
                             marginRight: 4,
                             borderRadius: 10,
-                            
                         }}
                     >
                         <Image
@@ -355,15 +291,12 @@ const Signup = ({ navigation }) => {
                                 height: 36,
                                 width: 25,
                                 marginRight: 8
-                                
                             }}
                             resizeMode='contain'
                         />
-
                         <Text style={{ fontSize: 16, color: COLORS.black }}>Google</Text>
                     </TouchableOpacity>
                 </View>
-
                 <View style={{
                     flexDirection: "row",
                     justifyContent: "center",
@@ -386,4 +319,4 @@ const Signup = ({ navigation }) => {
     )
 }
 
-export default Signup
+export default Signup;

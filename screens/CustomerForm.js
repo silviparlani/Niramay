@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions, StatusBar,ImageBackground ,Switch} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions, StatusBar,ImageBackground ,Switch,Image} from 'react-native';
+//import Icon from 'react-native-vector-icons/Ionicons';
 import Collapsible from 'react-native-collapsible';
-
+import { API_URL } from './config.js';
+//import checkmarkImage from '../assets/check-mark.png';
 const CustomerForm = () => {
   const [bitName, setBitName] = useState('');
   const [anganwadiNo, setAnganwadiNo] = useState('');
@@ -11,7 +12,7 @@ const CustomerForm = () => {
   const [childName, setChildName] = useState('');
   const [childDob, setChildDob] = useState('');
   const [childGender, setChildGender] = useState('');
-  //const [childHb, setChildHb] = useState('');
+  const [childHb, setChildHb] = useState('');
   const [childPhone, setChildPhone] = useState('');
   const [motherName, setMotherName] = useState('');
   const [motherEducation, setMotherEducation] = useState('');
@@ -41,7 +42,7 @@ const CustomerForm = () => {
   const [other, setOther] = useState('');
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-
+  const checkmarkImage = require('../assets/check-mark.png');
 
   const handleAddSibling = () => {
     
@@ -81,7 +82,7 @@ const CustomerForm = () => {
     <View style={styles.checkboxContainer}>
       <TouchableOpacity onPress={onChange}>
         <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-          {checked && <Icon name="checkmark" size={18} color="white" />}
+          {checked && <Image source={checkmarkImage} style={styles.checkicon} />}
         </View>
       </TouchableOpacity>
       <Text style={styles.checkboxLabel}>{label}</Text>
@@ -120,32 +121,32 @@ const CustomerForm = () => {
       console.log(
         selectedDiseases);
       const formData = {
-        bitName:bitName,
-        anganwadiNo:anganwadiNo,
-        assistantName:assistantName,
-        assistantPhone:assistantPhone,
-        childName:childName,
-        childDob:formattedChildDob,
-        childGender:childGender,
-        childPhone:childPhone,
-        motherName:motherName,
-        motherEducation:motherEducation,
-        motherOccupation:motherOccupation,       
-        motherAgeAtFirstPregnancy:motherAgeAtFirstPregnancy,
-        motherAgeAtMarriage:motherAgeAtMarriage,
-        childWeightAfterBirth:childWeightAfterBirth,
-        fatherName:fatherName,
-        fatherOccupation:fatherOccupation,
-        fatherEducation:fatherEducation,
-        totalFamilyMembers:totalFamilyMembers,
+        bit_name:bitName,
+        anganwadi_no:anganwadiNo,
+        assistant_name:assistantName,
+        assistant_phone:assistantPhone,
+        child_name:childName,
+        child_dob:formattedChildDob,
+        child_gender:childGender,
+        child_phone:childPhone,
+        mother_name:motherName,
+        mother_education:motherEducation,
+        mother_occupation:motherOccupation,       
+        mother_age_at_first_pregnancy:motherAgeAtFirstPregnancy,
+        mother_age_at_marriage:motherAgeAtMarriage,
+        child_weight_after_birth:childWeightAfterBirth,
+        father_name:fatherName,
+        father_occupation:fatherOccupation,
+        father_education:fatherEducation,
+        total_family_members:totalFamilyMembers,
         prevHistory:selectedDiseases,
         addictions,
-        sourceOfDrinkingWater:sourceOfDrinkingWater,
+        source_of_drinking_water:sourceOfDrinkingWater,
         other,
         TotalSiblings:totalSiblings
       };
   
-      const response = await fetch('http://10.1.20.103:3000/submitForm', {
+      const response = await fetch(`${API_URL}/submitForm`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,8 +168,8 @@ const CustomerForm = () => {
   
   const submitSiblingData = () => {
     const requestBody = JSON.stringify({
-      anganwadiNo: anganwadiNo,
-      childName: childName,
+      anganwadi_no: anganwadiNo,
+      child_name: childName,
       siblings: siblings,
     });
     console.log(siblings);
@@ -182,7 +183,7 @@ const CustomerForm = () => {
     };
   
     // Send the sibling data to the server using fetch
-    fetch('http://10.1.20.103:3000/submit-sibling-data', requestOptions)
+    fetch(`${API_URL}/submit-sibling-data`, requestOptions)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -253,20 +254,7 @@ if (motherName === '') {
   hasErrors = true;
 }
 
-// if (motherEducation === '') {
-//   newErrors.motherEducation = "Please enter Mother's Education";
-//   hasErrors = true;
-// }
 
-// if (motherOccupation === '') {
-//   newErrors.motherOccupation = "Please enter Mother's Occupation";
-//   hasErrors = true;
-// }
-
-// if (motherAgeAtMarriage === '') {
-//   newErrors.motherAgeAtMarriage = "Please enter Mother's Age at Marriage";
-//   hasErrors = true;
-// }
 
 if (motherAgeAtFirstPregnancy === '') {
   newErrors.motherAgeAtFirstPregnancy = "Please enter Mother's Age at First Pregnancy";
@@ -284,24 +272,7 @@ if (fatherName === '') {
   hasErrors = true;
 }
 
-// if (fatherEducation === '') {
-//   newErrors.fatherEducation = "Please enter Father's Education";
-//   hasErrors = true;
-// }
 
-// if (fatherOccupation === '') {
-//   newErrors.fatherOccupation = "Please enter Father's Occupation";
-//   hasErrors = true;
-// }
-// if (motherAgeAtMarriage === '') {
-//   newErrors.motherAgeAtMarriage = "Please enter Mother's Age at Marriage";
-//   hasErrors = true;
-// } else if (!/^\d+$/.test(motherAgeAtMarriage)) {
-//   newErrors.motherAgeAtMarriage = "Please enter a valid numeric age";
-//   hasErrors = true;
-// }
-
-// Validate child's weight after birth
 if (childWeightAfterBirth === '') {
   newErrors.childWeightAfterBirth = "Please enter Child's Weight After Birth";
   hasErrors = true;
@@ -341,12 +312,13 @@ if (childWeightAfterBirth === '') {
         >
           <View style={[styles.sectionHeaderBar,{ height: 85 }, styles.border]}>
             <Text style={styles.sectionTitle}>Bit Information / बिट माहिती </Text>
-            <Icon
-            name={showChildSection ? 'chevron-up-outline' : 'chevron-down-outline'}
-            size={30}
-            style = {styles.icon}
-            color="black"
-          />
+            
+      {showBitSection ? (
+        <Image source={require('../assets/up.png')} style={styles.icon} />
+      ) : (
+        <Image source={require('../assets/down.png')} style={styles.icon} />
+      )}
+   
           </View>
         </TouchableOpacity>
         <Collapsible collapsed={!showBitSection}>
@@ -354,10 +326,11 @@ if (childWeightAfterBirth === '') {
             <Text> </Text>
             <Text style={styles.label}>Bit Name / बिटचे नाव : <Text style={{ color: 'red', fontSize: 16 }}>*</Text> </Text>
             <TextInput
-               style={[styles.input, { height: 45 }]}
+               style={[styles.input, { height: 45,color: 'black' }]}
               value={bitName}
               onChangeText={setBitName}
               placeholder="Enter the bit name"
+              placeholderTextColor="grey"
             />
             <Text style={styles.errorText}>{errors.bitName}</Text>
 
@@ -365,10 +338,11 @@ if (childWeightAfterBirth === '') {
   Anganwadi No. / अंगणवाडी क्र. : <Text style={{ color: 'red', fontSize: 16 }}>*</Text> 
 </Text>
 <TextInput
-  style={[styles.input, { height: 45 }]}
+  style={[styles.input, { height: 45 ,color: 'black'}]}
   value={anganwadiNo}
   onChangeText={setAnganwadiNo}
   placeholder="Enter Anganwadi No."
+  placeholderTextColor="grey"
   keyboardType="phone-pad"
 />
 <Text style={styles.errorText}>{errors.anganwadiNo}</Text>
@@ -384,12 +358,11 @@ if (childWeightAfterBirth === '') {
              <View style={[styles.sectionHeaderBar,{ height: 85 }, styles.border]}>
          
             <Text style={styles.sectionTitle}>Anganwadi Assistant Information/अंगणवाडी सहाय्यकांची माहिती </Text>
-            <Icon
-            name={showChildSection ? 'chevron-up-outline' : 'chevron-down-outline'}
-            size={30}
-            style = {styles.icon}
-            color="black"
-          />
+            {showAssistantSection ? (
+        <Image source={require('../assets/up.png')} style={styles.icon} />
+      ) : (
+        <Image source={require('../assets/down.png')} style={styles.icon} />
+      )}
           </View>
         </TouchableOpacity>
         <Collapsible collapsed={!showAssistantSection}>
@@ -398,19 +371,21 @@ if (childWeightAfterBirth === '') {
           <Text> </Text>
           <Text style={styles.label}>Name / नाव :  <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
           <TextInput
-            style={[styles.input, { height: 45 }]}
+            style={[styles.input, { height: 45,color: 'black' }]}
             value={assistantName}
             onChangeText={setAssistantName}
             placeholder="Enter assistant's name"
+            placeholderTextColor="grey"
           />
           <Text style={styles.errorText}>{errors.assistantName}</Text>
 
           <Text style={styles.label}>Phone Number / फोन नंबर :  <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
           <TextInput
-            style={[styles.input, { height: 45 }]}
+            style={[styles.input, { height: 45,color: 'black' }]}
             value={assistantPhone}
             onChangeText={setAssistantPhone}
             placeholder="Enter assistant's phone number"
+            placeholderTextColor="grey"
             keyboardType="phone-pad"
             maxLength={10}
           />
@@ -426,12 +401,11 @@ if (childWeightAfterBirth === '') {
         >
              <View style={[styles.sectionHeaderBar,{ height: 85 }, styles.border]}>
             <Text style={styles.sectionTitle}>Child Information / मुलांची माहिती </Text>
-            <Icon
-            name={showChildSection ? 'chevron-up-outline' : 'chevron-down-outline'}
-            size={30}
-            style = {styles.icon}
-            color="black"
-          />
+            {showChildSection ? (
+        <Image source={require('../assets/up.png')} style={styles.icon} />
+      ) : (
+        <Image source={require('../assets/down.png')} style={styles.icon} />
+      )}
           </View>
         </TouchableOpacity>
         <Collapsible collapsed={!showChildSection}>
@@ -440,16 +414,18 @@ if (childWeightAfterBirth === '') {
     <Text> </Text>
           <Text style={styles.label}>Name / नाव :  <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
           <TextInput
-          style={[styles.input, { height: 45 }]}
+          style={[styles.input, { height: 45 ,color: 'black'}]}
             value={childName}
             onChangeText={setChildName}
             placeholder="Enter child's name"
+            placeholderTextColor="grey"
           />
           <Text style={styles.errorText}>{errors.childName}</Text>
           <Text style={styles.label}>Date of Birth / जन्मतारीख :  <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
           <TextInput
-           style={[styles.input, { height: 45 }]}
+           style={[styles.input, { height: 45 ,color: 'black'}]}
             value={childDob}
+            placeholderTextColor="grey"
             placeholder="DD-MM-YYYY"
             onChangeText={setChildDob}
             keyboardType="numeric"
@@ -485,10 +461,11 @@ if (childWeightAfterBirth === '') {
           <Text style={styles.errorText}>{errors.childHb}</Text>
           <Text style={styles.label}>Phone Number / फोन नंबर :  <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
           <TextInput
-           style={[styles.input, { height: 45 }]}
+           style={[styles.input, { height: 45,color: 'black' }]}
             value={childPhone}
             onChangeText={setChildPhone}
             placeholder="Enter phone number (parent's)"
+            placeholderTextColor="grey"
             keyboardType="phone-pad"
             maxLength={10}
           />
@@ -503,12 +480,11 @@ if (childWeightAfterBirth === '') {
 >
   <View style={[styles.sectionHeaderBar, { height: 85 }, styles.border]}>
     <Text style={styles.sectionTitle}>Parent Information / अभिभावकांची माहिती</Text>
-    <Icon
-      name={showParentSection ? 'chevron-up-outline' : 'chevron-down-outline'}
-      size={30}
-      style={styles.icon}
-      color="black"
-    />
+    {showParentSection ? (
+        <Image source={require('../assets/up.png')} style={styles.icon} />
+      ) : (
+        <Image source={require('../assets/down.png')} style={styles.icon} />
+      )}
   </View>
 </TouchableOpacity>
 <Collapsible collapsed={!showParentSection}>
@@ -518,57 +494,63 @@ if (childWeightAfterBirth === '') {
     <Text style={styles.subSectionTitle}>Mother's Information / आईची माहिती</Text>
     <Text style={styles.label}>Mother's Name / आईचे नाव :  <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45,color: 'black' }]}
       value={motherName}
       onChangeText={setMotherName}
       placeholder="Enter mother's name"
+      placeholderTextColor="grey"
     />
     <Text style={styles.errorText}>{errors.motherName}</Text>
 
     <Text style={styles.label}>Mother's Education / आईचे शिक्षण :</Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45 ,color: 'black'}]}
       value={motherEducation}
       onChangeText={setMotherEducation}
       placeholder="Enter mother's education"
+      placeholderTextColor="grey"
     />
     <Text style={styles.errorText}>{errors.motherEducation}</Text>
 
     <Text style={styles.label}>Mother's Occupation / आईचे व्यवसाय :</Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45,color: 'black' }]}
       value={motherOccupation}
       onChangeText={setMotherOccupation}
+      placeholderTextColor="grey"
       placeholder="Enter mother's occupation"
     />
     <Text style={styles.errorText}>{errors.motherOccupation}</Text>
 
     <Text style={styles.label}>Mother's Age at Marriage / लग्नाच्या वेळी आईचे वय : </Text>
     <TextInput
-  style={[styles.input, { height: 45 }]}
+  style={[styles.input, { height: 45 ,color: 'black'}]}
   value={motherAgeAtMarriage}
   onChangeText={setMotherAgeAtMarriage}
   placeholder="Enter mother's age at marriage"
+  placeholderTextColor="grey"
   keyboardType="numeric" // Set keyboardType to 'numeric'
 />
 <Text style={styles.errorText}>{errors.motherAgeAtMarriage}</Text>
 
     <Text style={styles.label}>Mother's Age at First Pregnancy / आईची पहिल्या गर्भाच्या वेळीची वय : <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45 ,color: 'black'}]}
       value={motherAgeAtFirstPregnancy}
       onChangeText={setMotherAgeAtFirstPregnancy}
       placeholder="Enter mother's age at first pregnancy"
+      placeholderTextColor="grey"
       keyboardType="numeric"
     />
     <Text style={styles.errorText}>{errors.motherAgeAtFirstPregnancy}</Text>
 
     <Text style={styles.label}>Child's Weight After Birth / बाळाची जन्मानंतरची वजन: <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45,color: 'black' }]}
       value={childWeightAfterBirth}
       onChangeText={setChildWeightAfterBirth}
       placeholder="Enter child's weight after birth"
+      placeholderTextColor="grey"
        keyboardType="numeric"
     />
     <Text style={styles.errorText}>{errors.childWeightAfterBirth}</Text>
@@ -579,28 +561,31 @@ if (childWeightAfterBirth === '') {
 
     <Text style={styles.label}>Father's Name / वडिलांचे नाव: <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45,color: 'black' }]}
       value={fatherName}
       onChangeText={setFatherName}
       placeholder="Enter father's name"
+      placeholderTextColor="grey"
     />
     <Text style={styles.errorText}>{errors.fatherName}</Text>
 
     <Text style={styles.label}>Father's Education / वडिलांचे शिक्षण:</Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45 ,color: 'black'}]}
       value={fatherEducation}
       onChangeText={setFatherEducation}
       placeholder="Enter father's education"
+      placeholderTextColor="grey"
     />
     <Text style={styles.errorText}>{errors.fatherEducation}</Text>
 
     <Text style={styles.label}>Father's Occupation / वडिलांचे व्यवसाय:</Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45,color: 'black' }]}
       value={fatherOccupation}
       onChangeText={setFatherOccupation}
       placeholder="Enter father's occupation"
+      placeholderTextColor="grey"
     />
     <Text style={styles.errorText}>{errors.fatherOccupation}</Text>
   </View>
@@ -612,12 +597,11 @@ if (childWeightAfterBirth === '') {
 >
   <View style={[styles.sectionHeaderBar, { height: 85 }, styles.border]}>
     <Text style={styles.sectionTitle}>Information of Family / कुटुंबाची माहिती</Text>
-    <Icon
-      name={showFamilySection ? 'chevron-up-outline' : 'chevron-down-outline'}
-      size={30}
-      style={styles.icon}
-      color="black"
-    />
+    {showFamilySection ? (
+        <Image source={require('../assets/up.png')} style={styles.icon} />
+      ) : (
+        <Image source={require('../assets/down.png')} style={styles.icon} />
+      )}
   </View>
 </TouchableOpacity>
 <Collapsible collapsed={!showFamilySection}>
@@ -625,10 +609,11 @@ if (childWeightAfterBirth === '') {
     <Text></Text>
     <Text style={styles.label}>Total Family Members / एकूण कुटुंब  सदस्य : <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
     <TextInput
-      style={[styles.input, { height: 45 }]}
+      style={[styles.input, { height: 45,color: 'black' }]}
       value={totalFamilyMembers}
       onChangeText={setTotalFamilyMembers}
       placeholder="Enter total family members"
+      placeholderTextColor="grey"
       keyboardType="numeric"
     />
 
@@ -636,10 +621,11 @@ if (childWeightAfterBirth === '') {
 <Text></Text>
     <Text style={styles.label}>Total Number of Siblings / भावंडांची एकूण संख्या : <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
     <TextInput
-        style={[styles.input, { height: 45 }]}
+        style={[styles.input, { height: 45 ,color: 'black'}]}
         value={totalSiblings.toString()} // Ensure it's a string
         onChangeText={(value) => setTotalSiblings(parseInt(value) || 0)} // Parse as an integer
         placeholder="Enter total number of Siblings "
+        placeholderTextColor="grey"
         keyboardType="numeric"
       />
 
@@ -648,10 +634,10 @@ if (childWeightAfterBirth === '') {
     <Text style={styles.subSectionTitle}>Sibling Information / भावंडांची माहिती</Text>
     <Text style = {styles.errorText}>(Slide right if child is Malnourished)</Text>
 <View style={styles.siblingTableHeader}>
-  <Text style={[styles.siblingTableHeaderCell, { flex: 2 }]}>Name</Text>
-  <Text style={[styles.siblingTableHeaderCell, {  flex: 1}]}>Age</Text>
+  <Text style={[styles.siblingTableHeaderCell, { flex: 2 ,color:'grey'}]}>Name</Text>
+  <Text style={[styles.siblingTableHeaderCell, {  flex: 1,color:'grey'}]}>Age</Text>
   <View style={styles.malnourishedHeaderCell}>
-    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Malnourished</Text>
+    <Text style={{ fontSize: 16, fontWeight: 'bold',color:'grey' }}>Malnourished</Text>
   </View>
   {/* <Text style={[styles.siblingTableHeaderCell, { flex: 3 }]}>Other</Text> */}
 </View>
@@ -659,18 +645,20 @@ if (childWeightAfterBirth === '') {
   <View key={index} style={styles.siblingTableRow}>
     {/* Sibling Name */}
     <TextInput
-      style={[styles.siblingTableCell, { flex: 2 },]}
+      style={[styles.siblingTableCell, { flex: 2 ,color: 'black'},]}
       value={sibling.name}
       onChangeText={(value) => handleSiblingFieldChange(index, 'name', value)}
       placeholder={`Enter name`}
+      placeholderTextColor="grey"
     />
     {/* Sibling Age */}
     <TextInput
-      style={[styles.siblingTableCell, { flex: 1 }]}
+      style={[styles.siblingTableCell, { flex: 1,color: 'black' }]}
       value={sibling.age}
       onChangeText={(value) => handleSiblingFieldChange(index, 'age', value)}
       placeholder={`Age`}
       keyboardType="numeric"
+      placeholderTextColor="grey"
     />
     {/* Malnourished */}
     <View style={[styles.siblingTableCell, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
@@ -711,30 +699,33 @@ if (childWeightAfterBirth === '') {
          {/* Addictions */}
       <Text style={styles.label}>Addictions / व्यसने</Text>
       <TextInput
-        style={[styles.input, styles.textArea]}
+        style={[styles.input, styles.textArea,{color: 'black'}]}
         value={addictions}
         onChangeText={setAddictions}
         placeholder="Enter addictions"
+        placeholderTextColor="grey"
         multiline={true}
       />
 
       {/* Source of Drinking Water */}
       <Text style={styles.label}>Source of Drinking Water / पिण्याच्या पाण्याचा स्त्रोत</Text>
       <TextInput
-        style={[styles.input, styles.textArea]}
+        style={[styles.input, styles.textArea,{color: 'black'}]}
         value={sourceOfDrinkingWater}
         onChangeText={setSourceOfDrinkingWater}
         placeholder="Enter source of drinking water"
+        placeholderTextColor="grey"
         multiline={true}
       />
 
       {/* Other */}
       <Text style={styles.label}>Other / इतर</Text>
       <TextInput
-        style={[styles.input, styles.textArea]}
+        style={[styles.input, styles.textArea,{color: 'black'}]}
         value={other}
         onChangeText={setOther}
         placeholder="Enter other information"
+        placeholderTextColor="grey"
         multiline={true}
       />
 
@@ -809,6 +800,10 @@ const styles = StyleSheet.create({
     width: 26, // Adjust as needed
     height: 30, // Adjust as needed
   },
+  checkicon: {
+    width: 20, // Adjust as needed
+    height: 20, // Adjust as needed
+  },
   sectionHeaderBar: {
     backgroundColor: 'lightblue',
     flexDirection: 'row',
@@ -846,6 +841,7 @@ const styles = StyleSheet.create({
     color: '#7f8c8d',
   },
   input: {
+    color: 'black',
     width: '100%',
     // height: ,
     borderWidth: 1,
@@ -910,6 +906,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   radioButtonLabel: {
+    color: 'grey',
     fontSize: 18,
   },
   subSectionTitle: {
