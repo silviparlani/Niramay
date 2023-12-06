@@ -1,17 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity , Image} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Import an icon library of your choice
-
+import { API_URL } from './config';
 const options = [
   { key: 'option1', label: 'Height Per Visit', image: require('../assets/height.png') },
   { key: 'option2', label: 'Weight Per Visit', image: require('../assets/weight.png') },
   { key: 'option3', label: 'Haemoglobin Per Visit', image: require('../assets/drop.png') },
   { key: 'option4', label: 'Grade Per Visit', image: require('../assets/grade.png') },
-  { key: 'option5', label: 'Haemoglobin / Grade / No of Supplements Per Visit', image: require('../assets/grade.png') },
+  { key: 'option5', label: 'BMI Per Visit', image: require('../assets/bmi.png') },
+  { key: 'option6', label: 'Overall Growth Per Visit', image: require('../assets/Overall.png') },
+
 
 ];
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
 const Reports = ({ navigation, route }) => {
   const { anganwadiNo, childsName } = route.params;
+  const [formData, setFormData] = useState(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const requestData = {
+          anganwadiNo,
+          childsName,
+        };
+        // fetchDeviceIpAddress();
+        const response = await fetch(`${API_URL}/getFormData`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        });
+
+        if (response.status === 200) {
+          const data = await response.json();
+          setFormData(data);
+        } else {
+          console.log('Data not found in the database');
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } 
+    };
+
+    fetchData();
+  }, [anganwadiNo, childsName]);
+  console.log(formData);
+  const formattedDOB = formData?.child_dob ? formatDate(formData.child_dob) : '';
+  console.log(formattedDOB);
   return (
     <View style={styles.container}>
       <FlatList
@@ -22,24 +64,27 @@ const Reports = ({ navigation, route }) => {
             onPress={() => {
               // Check if "Option 1" is selected
               if (item.key === 'option1') {
-                navigation.navigate('HeightPerChild', { anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
+                navigation.navigate('HeightPerChild', {gender:formData.child_gender,dob:formattedDOB,anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
               }
               // You can add similar logic for other options if needed
               if (item.key === 'option2') {
-                navigation.navigate('WeightPerChild', { anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
+                navigation.navigate('WeightPerChild', { gender:formData.child_gender,dob:formattedDOB,anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
               }
 
               if (item.key === 'option3') {
-                navigation.navigate('HaemoglobinPerChild', { anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
+                navigation.navigate('HaemoglobinPerChild', { gender:formData.child_gender,dob:formattedDOB,anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
               }
 
               if (item.key === 'option4') {
-                navigation.navigate('GradePerChild', { anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
+                navigation.navigate('GradePerChild', {gender:formData.child_gender,dob:formattedDOB, anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
+              }
+              if (item.key === 'option5') {
+                navigation.navigate('BMIChartvsPerVisit',{gender:formData.child_gender,dob:formattedDOB, anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
               }
 
-              // if (item.key === 'option5') {
-              //   navigation.navigate('HaemoglobinPerGrade',{ anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
-              // }
+              if (item.key === 'option6') {
+                navigation.navigate('GrowthChartPerChild',{gender:formData.child_gender,dob:formattedDOB, anganwadiNo, childsName }); // Navigate to BitNamevsGender screen
+              }
             }}
           >
             <View style={styles.optionRow}>

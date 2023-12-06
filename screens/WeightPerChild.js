@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, ActivityIndicator, ScrollView } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
+import { VictoryChart, VictoryBar, VictoryAxis } from 'victory-native'; // Import Victory components
+import { API_URL } from './config.js';
+import { useNavigation } from '@react-navigation/native';
 
-const WeightPerChild = ({ route }) => {
-  const { anganwadiNo, childsName } = route.params;
-
+const WeightPerChild = ({ route,toggleMenu }) => {
+  const { anganwadiNo, childsName, gender, dob } = route.params;
+  const navigation = useNavigation();
+  
   // State variables to store data
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,8 +19,8 @@ const WeightPerChild = ({ route }) => {
           anganwadiNo,
           childsName,
         };
-
-        const response = await fetch('http://192.168.1.34:3000/getVisitsData', {
+        
+        const response = await fetch(`${API_URL}/getVisitsData`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -57,36 +60,42 @@ const WeightPerChild = ({ route }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : (
-        <View>
+      <ScrollView style={styles.scrollView}>
+            {loading ? (
+                <ActivityIndicator size="large" color="#007AFF" />
+            ) : (
+                <View>
+                <View style={styles.childInfo}>
+              <Text style={styles.chartTitle}>Profile</Text>
+              <Text style={styles.infoText}>Name: {childsName}</Text>
+              <Text style={styles.infoText}>Gender: {gender}</Text>
+              <Text style={styles.infoText}>Date of Birth: {dob}</Text>
+            </View>
           <View style={styles.chart}>
             <Text style={styles.chartTitle}>Weight Chart</Text>
             <ScrollView horizontal={true}>
-              <BarChart
-                data={{
-                  labels: customLabels, // Use custom labels for x-axis on the graph
-                  datasets: [
-                    {
-                      data: weights,
-                    },
-                  ],
-                }}
-                width={customLabels.length * 60} // Adjust width as needed
-                height={200}
-                yAxisLabel="Weight (kg)"
-                yAxisSuffix=" kg"
-                chartConfig={{
-                  backgroundGradientFrom: '#fff',
-                  backgroundGradientTo: '#fff',
-                  color: (opacity = 0.7) => `rgba(128, 0, 128, ${opacity})`,
-                  strokeWidth: 2,
-                  barRadius: 0,
-                  decimalPlaces: 2,
-                }}
-                style={styles.chartStyle}
-              />
+              <VictoryChart padding={{ top: 20, bottom: 50, left: 70, right: 40 }} domainPadding={{ x: 30 }} width={weights.length * 80}>
+                <VictoryBar
+                  data={weights.map((value, index) => ({ x: index + 1, y: value }))}
+                  style={{ data: { fill: '#3eb489' } }}
+                  labels={({ datum }) => `${datum.y} kg`}
+                />
+                <VictoryAxis 
+                  label = "Visits"
+                  style={{
+                    axisLabel: { padding: 30 },
+                  }}
+                  tickFormat={(value) => `Visit${value}`}
+                />
+                <VictoryAxis
+                  label="Weight (in kg)"
+                  style={{
+                    axisLabel: { padding: 40, y: -20 },
+                  }}
+                  dependentAxis
+                  domain={{ y: [Math.min(...weights) - 5, Math.max(...weights) + 5] }}
+                />
+              </VictoryChart>
             </ScrollView>
           </View>
 
@@ -107,6 +116,7 @@ const WeightPerChild = ({ route }) => {
           </View>
         </View>
       )}
+</ScrollView>
     </ScrollView>
   );
 };
@@ -144,6 +154,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     margin: 16,
     color: '#555',
+  },
+  menuButton: {
+    position: 'absolute',
+    bottom: -20,
+    right: 1,
+    zIndex: 1,
+
+    // Add any additional styles you need for positioning and appearance
+  },
+  menuIcon: {
+    width: 28,
+    height: 30,
+    // Add styles for your icon if needed
   },
   tableContainer: {
     backgroundColor: 'white',
@@ -185,6 +208,22 @@ const styles = StyleSheet.create({
     color: '#333'
 
   },
+childInfo: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        elevation: 4,
+        margin: 16,
+        padding: 16,
+      },
+      infoText: {
+        fontSize: 16,
+        marginBottom: 8,
+        color: 'black'
+      },
+      scrollView: {
+        flex: 1,
+        width: '100%',
+      },
 });
 
 export default WeightPerChild;

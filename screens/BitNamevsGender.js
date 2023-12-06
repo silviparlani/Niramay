@@ -1,17 +1,17 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View,TouchableOpacity, Text, StyleSheet, ScrollView,Image} from 'react-native';
 import axios from 'axios';
-import { BarChart } from 'react-native-chart-kit';
-import Draggable from 'react-native-draggable';
+import { VictoryBar, VictoryChart, VictoryAxis, VictoryLabel } from 'victory-native';
 import { FlatList } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { API_URL } from './config';
 
-const BitNamevsGender = () => {
+const BitNamevsGender = ({ toggleMenu }) => {
   const [data, setData] = useState([]);
-  const chartRef = useRef(null);
-
+  const navigation = useNavigation();
   useEffect(() => {
     axios
-      .get('http://192.168.1.34:3000/childData')
+      .get(`${API_URL}/childData`)
       .then((response) => {
         if (response.data instanceof Array) {
           setData(response.data);
@@ -26,62 +26,48 @@ const BitNamevsGender = () => {
         console.error('Error fetching data:', error);
       });
   }, []);
-
-  const chartData = {
-    labels: data.map((item) => item.bit_name),
-    datasets: [
-      {
-        data: data.map((item) => parseInt(item.total_children_count)),
-        color: (opacity = 1) => `rgba(280, 200, 250, ${opacity})`,
-      },
-    ],
-  };
-
-  const chartConfig = {
-    backgroundGradientFrom: '#fff',
-    backgroundGradientTo: '#fff',
-    color: (opacity = 1) => `rgba(110, 110, 90, ${opacity})`,
-    barPercentage: 0.5,
-    propsForDots: {
-      r: '3',
-    },
-    propsForBackgroundLines: {
-      stroke: '#fff',
-    },
-    labelRotation: 45,
-    labelFontSize: 10,
-  };
+ 
+  const chartData = data.map((item) => ({
+    bit_name: item.bit_name,
+    total_children_count: parseInt(item.total_children_count),
+  }));
+  console.log(chartData);
+  const xAxisTickValues = data.map((item, index) => ({ x: index + 1, label: item.bit_name }));
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.chartTitle}>Total Children by Bit Name</Text>
       <ScrollView horizontal={true}>
-        <BarChart
-          data={chartData}
-          width={800}
-          height={400}
-          yAxisLabel="Count"
-          chartConfig={chartConfig}
-          style={styles.chart}
-          ref={chartRef}
-        />
+        <View style={styles.chartContainer}>
+          <VictoryChart domainPadding={{ x: 5 }} padding={{ left: 50, right: 50, top: 20, bottom: 50 }} height={350} width={data.length * 100}>
+            <VictoryAxis
+              label="Bit Name"
+              tickValues={xAxisTickValues.map((tick) => tick.x)}
+              tickLabelComponent={<VictoryLabel angle={0} />}
+              style={{
+                axisLabel: { padding: 30 },
+              }}
+              tickFormat={(tick, index) => xAxisTickValues[index]?.label || ''}
+            />
+            <VictoryAxis dependentAxis
+              label="Count of Children"
+              style={{
+                axisLabel: { padding: 30},
+              }}
+            />
+            <VictoryBar
+              data={chartData}
+              x="bit_name"
+              y="total_children_count"
+              style={{ data: { fill: 'rgba(180, 80, 130, 1)' } }}
+              barWidth={20}
+              alignment="start"
+              labels={({ datum }) => datum.total_children_count}
+              labelComponent={<VictoryLabel dx={10} dy={0} />}
+            />
+          </VictoryChart>
+        </View>
       </ScrollView>
-      <Text style={styles.legend}>Legend:</Text>
-      <View style={styles.legendItem}>
-        <View style={styles.legendColorBox} />
-        <Text style={styles.legendText}>Total Children</Text>
-      </View>
-      <Draggable
-        x={0}
-        minX={0}
-        maxX={chartData.labels.length * 60}
-        onMove={(_, { x }) => {
-          const scrollPosition = (x / (chartData.labels.length * 60)) * chartRef.current.scrollContentWidth;
-          chartRef.current.scrollTo({ x: scrollPosition, animated: false });
-        }}
-      >
-        <View style={styles.scrollbar} />
-      </Draggable>
       <Text style={styles.summaryTableTitle}>Summary Table</Text>
       <View style={styles.tableContainer}>
         <Text style={styles.tableTitle}>Bit Name vs Count of Children</Text>
@@ -101,103 +87,87 @@ const BitNamevsGender = () => {
 };
 
 const styles = StyleSheet.create({
+   menuButton: {
+    position: 'absolute',
+    bottom: -20,
+    right: 1,
+    zIndex: 1,
+
+    // Add any additional styles you need for positioning and appearance
+  },
+  menuIcon: {
+    width: 28,
+    height: 30,
+    // Add styles for your icon if needed
+  },
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0',
     paddingVertical: 20,
   },
-  chart: {
+  chartContainer: {
     margin: 16,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: 'white',
     borderRadius: 10,
     elevation: 4,
+    padding: 16,
   },
-  chartTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-    textAlign: 'center',
-  },
-  legend: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 5,
-  },
-  legendColorBox: {
-    width: 20,
-    height: 20,
-    backgroundColor: '#cecece',
-    marginRight: 10,
-    borderRadius: 5,
-  },
-  legendText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  scrollbar: {
-    width: 50,
-    height: 5,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  summaryTableTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 10,
-    color: '#333',
-    textAlign: 'center',
-  },
-  tableContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
+    chartTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 10,
+      color: '#333',
+      textAlign: 'center',
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 8,
-    margin: 16,
-  },
-  tableTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    margin: 16,
-    color: '#333',
-    textAlign: 'center',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  bitName: {
-    flex: 1,
-    textAlign: 'left',
-    color: '#333',
-    fontSize: 16,
-  },
-  childCount: {
-    flex: 1,
-    textAlign: 'right',
-    color: '#333',
-    fontSize: 16,
-  },
-});
+    summaryTableTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginTop: 20,
+      marginBottom: 10,
+      color: '#333',
+      textAlign: 'center',
+    },
+    tableContainer: {
+      backgroundColor: '#fff',
+      borderRadius: 15,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 8,
+      margin: 16,
+    },
+    tableTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      margin: 16,
+      color: '#333',
+      textAlign: 'center',
+    },
+    tableRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: '#ccc',
+    },
+    bitName: {
+      flex: 1,
+      textAlign: 'left',
+      color: '#333',
+      fontSize: 16,
+    },
+    childCount: {
+      flex: 1,
+      textAlign: 'right',
+      color: '#333',
+      fontSize: 16,
+    },
+  });
 
 export default BitNamevsGender;

@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ImageBackground,ToastAndroid} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ImageBackground,
+  ToastAndroid,
+  Alert,
+  Image
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import COLORS from '../constants/colors';
+import { API_URL } from './config';
 
 
-
-const ChildPresent = () => {
+const ChildPresent = ({toggleMenu}) => {
   const navigation = useNavigation();
-  const [isChildPresent, setIsChildPresent] = useState(false); 
+  const [isChildPresent, setIsChildPresent] = useState(false);
   const [anganwadiNo, setAnganwadiNo] = useState('');
   const [childsName, setChildsName] = useState('');
 
@@ -17,13 +28,19 @@ const ChildPresent = () => {
 
   const handleFormSubmit = async () => {
     try {
-      // Prepare the data to send to the server
+      if (!anganwadiNo || !childsName) {
+        Alert.alert('Missing Details', 'Please enter Anganwadi No. and Child\'s Name.', [
+          { text: 'OK', onPress: () => console.log('OK Pressed') },
+        ]);
+        return;
+      }
+
       const requestData = {
         anganwadiNo,
         childsName,
       };
-      
-      const response = await fetch('http://192.168.1.34:3000/checkData', {
+
+      const response = await fetch(`${API_URL}/checkData2`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,36 +49,63 @@ const ChildPresent = () => {
       });
 
       if (response.status === 200) {
+        const data = await response.json();
         setIsChildPresent(true);
-        // Data exists in the database, you can navigate to the next screen or perform other actions
-        console.log('Data exists in the database');
-        console.log('Anganwadi Number: ', anganwadiNo);
-        console.log('Child Name: ', childsName);
-        navigation.navigate('GeneralHistoryForm', {
+
+        if (data.customerDataPresent && data.generalHistoryDataPresent) {
+          // Both tables have data
+          Alert.alert(
+            'Data Present',
+            'Data is present in both tables. Do you want to view the form?',
+            [
+              {
+                text: 'Cancel',
+                onPress: () => console.log('Cancel Pressed'),
+                style: 'cancel',
+              },
+              {
+                text: 'View Form',
+                onPress: () =>
+                  navigation.navigate('GeneralHistoryDisplay', {
+                    anganwadiNo: anganwadiNo,
+                    childsName: childsName,
+                  }),
+              },
+            ]
+          );
+        } else if (data.customerDataPresent && !data.generalHistoryDataPresent) {
+          // Only customer table has data, but general history table doesn't
+          navigation.navigate('GeneralHistoryForm', {
             anganwadiNo: anganwadiNo,
             childsName: childsName,
-          });          
-        
-      } else {
-        // Data does not exist in the database
-        ToastAndroid.showWithGravityAndOffset(
-            'Data not present in database. Add personal infroamtion of the child first.',
-            ToastAndroid.LONG,
-            ToastAndroid.BOTTOM,
-            50,
-            180
+          });
+        } else {
+          // No data in the customer table
+          Alert.alert(
+            'Missing Customer Data',
+            'Please fill in the Personal Information form first.',
+            [{ text: 'OK', onPress: () => console.log('OK Pressed') }]
           );
+        }
+      } else {
+        setIsChildPresent(false);
+        ToastAndroid.showWithGravityAndOffset(
+          'Data not present in the database. Add personal information of the child first.',
+          ToastAndroid.LONG,
+          ToastAndroid.BOTTOM,
+          50,
+          180
+        );
         console.log("Data doesn't exist in the database");
       }
     } catch (error) {
       console.error('Error submitting form:', error);
     }
   };
-
-
+  
   return (
     <ImageBackground
-      source={require('../assets/bg21.jpg')} // Replace with the path to your image asset
+      source={require('../assets/bg21.jpg')}
       style={styles.backgroundImage}
     >
       <ScrollView contentContainerStyle={styles.container}>
@@ -74,6 +118,7 @@ const ChildPresent = () => {
               placeholderTextColor={COLORS.black}
               value={anganwadiNo}
               onChangeText={(text) => setAnganwadiNo(text)}
+              keyboardType="numeric" // This line ensures the numeric keyboard
             />
           </View>
 
@@ -92,19 +137,12 @@ const ChildPresent = () => {
             <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleViewForm}
-          >
-  <Text style={styles.buttonText}>View</Text>
-</TouchableOpacity>
-
+        
         </View>
       </ScrollView>
     </ImageBackground>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -166,6 +204,19 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     resizeMode: 'cover', // or 'stretch'
+  },
+  menuButton: {
+    position: 'absolute',
+    bottom: -20,
+    right: 1,
+    zIndex: 1,
+
+    // Add any additional styles you need for positioning and appearance
+  },
+  menuIcon: {
+    width: 28,
+    height: 30,
+    // Add styles for your icon if needed
   },
 });
 

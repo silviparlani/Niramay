@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, ScrollView } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import { View, StyleSheet,TouchableOpacity,Image, Text, ActivityIndicator, ScrollView } from 'react-native';
+import { VictoryLine, VictoryChart, VictoryAxis, VictoryScatter,VictoryLabel } from 'victory-native';
+import { API_URL } from './config';
+import { useNavigation } from '@react-navigation/native';
 
-const GradePerChild = ({ route }) => {
-  const { anganwadiNo, childsName } = route.params;
+const GradePerChild = ({ route,toggleMenu }) => {
+  const { anganwadiNo, childsName, gender, dob } = route.params;
 
   // State variables to store data
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const navigation = useNavigation();
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -17,7 +20,7 @@ const GradePerChild = ({ route }) => {
           childsName,
         };
 
-        const response = await fetch('http://192.168.1.34:3000/getVisitsData', {
+        const response = await fetch(`${API_URL}/getVisitsData`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -41,9 +44,11 @@ const GradePerChild = ({ route }) => {
     fetchData();
   }, [anganwadiNo, childsName]);
 
-  // Extract grade data from formData
-  const { data } = formData || {};
+  // Check if formData and data exist before accessing properties
+  const data = formData?.data;
+  console.log(data);
   const grades = data ? data.map((entry) => entry.grade) : [];
+
 
   // Convert categorical grades to numerical values
   const gradeValues = grades.map((grade) => {
@@ -59,55 +64,64 @@ const GradePerChild = ({ route }) => {
     }
   });
 
-  const chartData = {
-    labels: data ? data.map((_, index) => `Visit ${index + 1}`) : [],
-    datasets: [
-      {
-        data: gradeValues,
-        strokeWidth: 2,
-      },
-    ],
-  };
-
-  const tableData = data || [];
+  const chartData = data ? data.map((_, index) => ({ x: index + 1, y: gradeValues[index] })) : [];
 
   return (
     <ScrollView style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : (
-        <View>
-          <View style={styles.chart}>
-            <Text style={styles.chartTitle}>Grade Chart</Text>
-            <ScrollView horizontal={true}>
-              <LineChart
-                data={chartData}
-                width={chartData.labels.length * 100} // Adjust width as needed
-                height={200}
-                yAxisLabel="Grade"
-                yAxisSuffix=""
-                chartConfig={{
-                  backgroundGradientFrom: '#fff',
-                  backgroundGradientTo: '#fff',
-                  color: (opacity = 0.7) => `rgba(128, 0, 128, ${opacity})`,
-                  decimalPlaces: 0,
-                }}
-                style={styles.chartStyle}
-                formatYLabel={(value) => {
-                  switch (value) {
-                    case 0:
-                      return 'Normal';
-                    case 1:
-                      return 'MAM';
-                    case 2:
-                      return 'SAM';
-                    default:
-                      return '';
-                  }
-                }}
-              />
-            </ScrollView>
-          </View>
+      <ScrollView style={styles.scrollView}>
+            {loading ? (
+                <ActivityIndicator size="large" color="#007AFF" />
+            ) : (
+                <View>
+                <View style={styles.childInfo}>
+              <Text style={styles.chartTitle}>Profile</Text>
+              <Text style={styles.infoText}>Name: {childsName}</Text>
+              <Text style={styles.infoText}>Gender: {gender}</Text>
+              <Text style={styles.infoText}>Date of Birth: {dob}</Text>
+            </View>
+          <ScrollView horizontal={true}>
+            <View style={styles.chart}>
+              <Text style={styles.chartTitle}>Grade Chart</Text>
+              <VictoryChart padding={{ top: 20, bottom: 50, left: 70, right: 40 }} domainPadding={{ x: 0 }}>
+                <VictoryLine
+                  data={chartData}
+                  style={{
+                    data: { stroke: 'rgba(128, 0, 128, 0.7)', strokeWidth: 3 },
+                  }}
+                  interpolation="linear"
+                />
+                <VictoryScatter
+                  data={chartData}
+                  size={5} // adjust the size of the scatter points
+                  style={{
+                    data: { fill: 'rgba(128, 0, 128, 0.7)' },
+                  }}
+                />
+                <VictoryAxis
+                  label="Visits"
+                  style={{
+                    axisLabel: { padding: 30 },
+                  }}
+                  tickFormat={(value) => `Visit${value}`}
+                  // tickLabelComponent={
+                  //   <VictoryLabel
+                  //     dy={3} // Adjust the spacing here
+                  //     textAnchor="middle"
+                  //   />
+                  // }
+                />
+                <VictoryAxis
+                  dependentAxis
+                  label="Grade"
+                  style={{
+                    axisLabel: { padding: 55, y: -20 },
+                  }}
+                  tickValues={[0, 1, 2]}
+                  tickFormat={['Normal', 'MAM', 'SAM']}
+                />
+              </VictoryChart>
+            </View>
+          </ScrollView>
 
           <View style={styles.table}>
             <Text style={styles.tableTitle}>Summary Table</Text>
@@ -120,7 +134,7 @@ const GradePerChild = ({ route }) => {
                   <Text style={styles.tableHeaderText}>Grade</Text>
                 </View>
               </View>
-              {tableData.map((item, index) => (
+              {data.map((item, index) => (
                 <View style={styles.tableRow} key={index}>
                   <View style={[styles.tableCell, { flex: 2 }]}>
                     <Text style={styles.tableCellText}>{item.visitDate}</Text>
@@ -134,11 +148,26 @@ const GradePerChild = ({ route }) => {
           </View>
         </View>
       )}
+ </ScrollView>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  menuButton: {
+    position: 'absolute',
+    bottom: -20,
+    right: 1,
+    zIndex: 1,
+
+    // Add any additional styles you need for positioning and appearance
+  },
+  menuIcon: {
+    width: 28,
+    height: 30,
+    // Add styles for your icon if needed
+  },
+
   container: {
     flex: 1,
     backgroundColor: '#f4f4f4',
@@ -208,8 +237,24 @@ const styles = StyleSheet.create({
   tableCellText: {
     fontSize: 14,
     color: '#333',
-    textAlign:'center'
+    textAlign: 'center'
   },
+childInfo: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        elevation: 4,
+        margin: 16,
+        padding: 16,
+      },
+      infoText: {
+        fontSize: 16,
+        marginBottom: 8,
+        color: 'black'
+      },
+      scrollView: {
+        flex: 1,
+        width: '100%',
+      },
 });
 
 export default GradePerChild;

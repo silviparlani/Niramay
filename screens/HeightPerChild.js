@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, ScrollView } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
+import { View, StyleSheet, Text,TouchableOpacity,Image,ActivityIndicator, ScrollView } from 'react-native';
+import { VictoryChart, VictoryBar, VictoryAxis } from 'victory-native'; // Import Victory components
+import { API_URL } from './config';
+import { useNavigation } from '@react-navigation/native';
 
-const HeightPerChild = ({ route }) => {
-  const { anganwadiNo, childsName } = route.params;
-
+const HeightPerChild = ({ route,toggleMenu }) => {
+  const { anganwadiNo, childsName, gender, dob } = route.params;
+  const navigation = useNavigation();
+ 
   // State variables to store data
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +20,7 @@ const HeightPerChild = ({ route }) => {
           childsName,
         };
 
-        const response = await fetch('http://192.168.1.34:3000/getVisitsData', {
+        const response = await fetch(`${API_URL}/getVisitsData`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -39,6 +42,7 @@ const HeightPerChild = ({ route }) => {
     };
 
     fetchData();
+    console.log('Heights:', heights);
   }, [anganwadiNo, childsName]);
 
   // Extract visit data from formData
@@ -54,44 +58,59 @@ const HeightPerChild = ({ route }) => {
   // Create table data
   const tableData = data
     ? data.map((entry, index) => ({
-        visit: visitDates[index], // Use visit dates for the table
-        height: `${parseFloat(entry.height).toFixed(2)} cm`,
-      }))
+      visit: visitDates[index], // Use visit dates for the table
+      height: `${parseFloat(entry.height).toFixed(2)} cm`,
+    }))
     : [];
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : (
-        <View>
+      <ScrollView style={styles.scrollView}>
+            {loading ? (
+                <ActivityIndicator size="large" color="#007AFF" />
+            ) : (
+                <View>
+                <View style={styles.childInfo}>
+              <Text style={styles.chartTitle}>Profile</Text>
+              <Text style={styles.infoText}>Name: {childsName}</Text>
+              <Text style={styles.infoText}>Gender: {gender}</Text>
+              <Text style={styles.infoText}>Date of Birth: {dob}</Text>
+            </View>
           <View style={styles.chart}>
             <Text style={styles.chartTitle}>Height Chart</Text>
             <ScrollView horizontal={true}>
-            <BarChart
-  data={{
-    labels: visitLabels,
-    datasets: [
-      {
-        data: heights,
-      },
-    ],
-  }}
-  width={350}
-  height={200}
-  yAxisLabel="Height (cm)"
-  yAxisSuffix=" cm" // Make sure there is a space before "cm"
-  chartConfig={{
-    backgroundGradientFrom: '#fff',
-    backgroundGradientTo: '#fff',
-    color: (opacity = 0.7) => `rgba(0, 128, 255, ${opacity})`,
-    strokeWidth: 2,
-    barRadius: 0,
-    decimalPlaces: 2,
-  }}
-  style={styles.chartStyle}
-/>
-
+              {/* <VictoryChart domainPadding={{ x: 20 }} width={heights.length * 80}>
+                <VictoryBar
+                  data={heights.map((value, index) => ({ x: index + 1, y: value }))}
+                  style={{ data: { fill: '#3eb489' } }} // Set the fill color to Mint (#3eb489)
+                />
+                <VictoryAxis />
+                <VictoryAxis
+                  dependentAxis
+                  domain={{ y: [Math.min(...heights) - 5, Math.max(...heights) + 5] }}
+                />
+              </VictoryChart> */}
+              <VictoryChart padding={{ top: 20, bottom: 50, left: 70, right: 40 }} domainPadding={{ x: 20 }} width={heights.length * 80}>
+                <VictoryBar
+                  data={heights.map((value, index) => ({ x: index + 1, y: value }))}
+                  style={{ data: { fill: '#3eb489' } }}
+                  labels={({ datum }) => `${datum.y} cm`}
+                />
+                <VictoryAxis
+                  label = "Visits"
+                  style={{
+                    axisLabel: { padding: 30 },
+                  }}
+                  tickFormat={(value) => `Visit${value}`}
+                />
+                <VictoryAxis
+                label="Height (in cm)"
+                style={{
+                  axisLabel: { padding: 40, y: -20 },
+                }}
+                dependentAxis domain={{ y: [Math.min(...heights) - 5, Math.max(...heights) + 5] }}
+                />
+              </VictoryChart>
             </ScrollView>
           </View>
 
@@ -112,6 +131,7 @@ const HeightPerChild = ({ route }) => {
           </View>
         </View>
       )}
+ </ScrollView>
     </ScrollView>
   );
 };
@@ -128,7 +148,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 4,
     padding: 16,
-    marginLeft:20
+    marginLeft: 20
   },
   chartTitle: {
     fontSize: 18,
@@ -190,6 +210,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
+childInfo: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        elevation: 4,
+        margin: 16,
+        padding: 16,
+      },
+      infoText: {
+        fontSize: 16,
+        marginBottom: 8,
+        color: 'black'
+      },
+      scrollView: {
+        flex: 1,
+        width: '100%',
+      },
+      menuButton: {
+        position: 'absolute',
+        bottom: -20,
+        right: 1,
+        zIndex: 1,
+   
+        // Add any additional styles you need for positioning and appearance
+      },
+      menuIcon: {
+        width: 28,
+        height: 30,
+        // Add styles for your icon if needed
+      },
+   
+
 });
 
 export default HeightPerChild;

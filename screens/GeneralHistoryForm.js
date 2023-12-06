@@ -7,7 +7,7 @@ import { useRoute } from '@react-navigation/native';
 import COLORS from '../constants/colors';
 import { API_URL } from './config';
 const checkmarkImage = require('../assets/check-mark.png');
-
+import CheckBox from 'react-native-check-box';
 
 const CollapsibleSectionWithIcon = ({ title, children }) => {
   const [collapsed, setCollapsed] = useState(true);
@@ -122,7 +122,16 @@ const VisitRow = ({ visit, index, handleVisitFieldChange }) => {
         onChangeText={(text) => handleVisitFieldChange(index, 'difference', text)}
         style={styles.textInput}
       />
-
+<Text style={styles.label}>Observations And Suggestions :</Text>
+          <TextInput
+            label="Observations and Suggestions"
+            multiline
+            value={visit.observations}
+            onChangeText={(text) =>
+              handleTextInputChange('observations', text)
+            }
+            style={styles.multilineTextInput}
+          />
       
     </View>
   );
@@ -167,7 +176,6 @@ const GeneralHistoryForm = () => {
     abdomen: '',
     motion: '',
     otherSigns: '',
-    observationsAndSuggestions: '',
     visits: [],
   });
 
@@ -182,6 +190,7 @@ const GeneralHistoryForm = () => {
       difference: '',
       grade: '',
       observations: '',
+      
     };
     setGeneralHistory((prevHistory) => ({
       ...prevHistory,
@@ -197,8 +206,8 @@ const GeneralHistoryForm = () => {
 
     try {
       const generalHistoryData = {
-        anganwadiNo: anganwadiNo,
-        childName: childsName,
+        anganwadi_no: anganwadiNo,
+        child_name: childsName,
         vomiting: generalHistory.vomiting, // Accessing values from generalHistory state
         fever: generalHistory.fever,
         commonCold: generalHistory.commonCold,
@@ -219,13 +228,13 @@ const GeneralHistoryForm = () => {
         observationsAndSuggestions: generalHistory.observationsAndSuggestions,
       };
       console.log(generalHistoryData);
-      const response = await fetch(`${ API_URL }/generalHistory`, {
+      const response = await fetch(`${ API_URL }/generalHistory, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(generalHistoryData),
-      });
+      }`);
 
       if (response.status === 200) {
         //console.log(response.body);
@@ -261,13 +270,13 @@ const GeneralHistoryForm = () => {
           grade: visit.grade,
         };
         console.log(visitData);
-        const response = await fetch(`${ API_URL }/visits`, {
+        const response = await fetch(`${ API_URL }/visits, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(visitData),
-        });
+        }`);
 
         if (response.status === 200) {
           console.log('Visit data submitted successfully');
@@ -305,6 +314,7 @@ const GeneralHistoryForm = () => {
       [field]: !prevHistory[field],
     }));
   };
+  
 
   const handleTextInputChange = (field, value) => {
     setGeneralHistory((prevHistory) => ({
@@ -321,42 +331,70 @@ const GeneralHistoryForm = () => {
         <CollapsibleSectionWithIcon title={<Text style={styles.sectionTitle}>Test / चाचणी</Text>}>
 
 
-          <Checkbox.Item
-            label="Vomiting"
-            status={generalHistory.vomiting ? 'checked' : 'unchecked'}
-            onPress={() => handleToggle('vomiting')}
-            color='teal'
-          />
-          <Checkbox.Item
-            label="Fever"
-            status={generalHistory.fever ? 'checked' : 'unchecked'}
-            onPress={() => handleToggle('fever')}
-            color='teal'
-          />
-          <Checkbox.Item
-            label="Common Cold"
-            status={generalHistory.commonCold ? 'checked' : 'unchecked'}
-            onPress={() => handleToggle('commonCold')}
-            color='teal'
-          />
-          <Checkbox.Item
-            label="Cough"
-            status={generalHistory.cough ? 'checked' : 'unchecked'}
-            onPress={() => handleToggle('cough')}
-            color='teal'
-          />
-          <Checkbox.Item
-            label="Oedema"
-            status={generalHistory.oedema ? 'checked' : 'unchecked'}
-            onPress={() => handleToggle('oedema')}
-            color='teal'
-          />
-          <Checkbox.Item
-            label="Vaccination Done"
-            status={generalHistory.vaccinationDone ? 'checked' : 'unchecked'}
-            onPress={() => handleToggle('vaccinationDone')}
-            color='teal'
-          />
+        <View style={styles.checkboxContainer}>
+  <Text style={styles.checkboxLabel}>Vomiting</Text>
+  <CheckBox
+    checkBoxColor="teal"
+    onClick={() => handleToggle('vomiting')}
+    isChecked={generalHistory.vomiting}
+    textStyle={{ fontSize: 16, color: 'black' }}
+    style={{ marginLeft: 155 }} // Add marginRight to create space
+  />
+</View>
+
+<View style={styles.checkboxContainer}>
+  <Text style={styles.checkboxLabel}>Fever</Text>
+  <CheckBox
+    checkBoxColor="teal"
+    onClick={() => handleToggle('fever')}
+    isChecked={generalHistory.fever}
+    textStyle={{ fontSize: 16, color: 'black' }}
+    style={{ marginLeft:180 }} // Add marginRight to create space
+  />
+</View>
+
+<View style={styles.checkboxContainer}>
+  <Text style={styles.checkboxLabel}>Common Cold</Text>
+  <CheckBox
+  checkBoxColor="teal"
+  onClick={() => handleToggle('commonCold')}
+  isChecked={generalHistory.commonCold}
+  textStyle={{ fontSize: 16, color: 'black' }}
+  style={{ marginLeft: 115 }}
+/>
+</View>
+<View style={styles.checkboxContainer}>
+  <Text style={styles.checkboxLabel}>Cough</Text>
+  <CheckBox
+  checkBoxColor="teal"
+  onClick={() => handleToggle('cough')}
+  isChecked={generalHistory.cough}
+  textStyle={{ fontSize: 16, color: 'black' }}
+  style={{ marginLeft: 170 }}
+/>
+
+</View>
+<View style={styles.checkboxContainer}>
+  <Text style={styles.checkboxLabel}>Oedema</Text>
+  <CheckBox
+  checkBoxColor="teal"
+  onClick={() => handleToggle('oedema')}
+  isChecked={generalHistory.oedema}
+  textStyle={{ fontSize: 16, color: 'black' }}
+  style={{ marginLeft: 155 }}
+/>
+
+</View>
+<View style={styles.checkboxContainer}>
+  <Text style={styles.checkboxLabel}>Vaccination</Text>
+  <CheckBox
+    checkBoxColor="teal"
+    onClick={() => handleToggle('vaccinationDone')}
+    isChecked={generalHistory.vaccinationDone}
+    textStyle={{ fontSize: 16, color: 'black' }}
+    style={{ marginLeft:130 }}
+  />
+</View>
 
           <Text style={styles.label}>Appetite Test:</Text>
           <TextInput
@@ -454,18 +492,7 @@ const GeneralHistoryForm = () => {
           />
         </CollapsibleSectionWithIcon>
 
-        <CollapsibleSectionWithIcon title={<Text style={styles.sectionTitle}>Observations & Suggestions /निरीक्षणे , सूचना</Text>}>
-          <Text style={styles.label}>Observations And Suggestions :</Text>
-          <TextInput
-            label="Observations and Suggestions"
-            multiline
-            value={generalHistory.observationsAndSuggestions}
-            onChangeText={(text) =>
-              handleTextInputChange('observationsAndSuggestions', text)
-            }
-            style={styles.multilineTextInput}
-          />
-        </CollapsibleSectionWithIcon>
+        
 
         <CollapsibleSectionWithIcon title={<Text style={styles.sectionTitle}>Visits / भेटी</Text>}>
           <VisitsTable
@@ -626,6 +653,22 @@ const styles = StyleSheet.create({
     marginTop: 10, 
     marginBottom: 10 
 },
+checkboxContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 10,
+},
+checkboxText: {
+  
+  fontSize: 16,
+  color: 'black', // Adjust the color to make text visible
+},
+checkboxLabel: {
+  marginLeft: 10, // Add margin to separate checkbox from label
+  fontSize: 16,
+  color: COLORS.black,
+},
+
 });
 
 export default GeneralHistoryForm;

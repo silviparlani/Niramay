@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ImageBackground,ToastAndroid} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import COLORS from '../constants/colors';
-
+import { API_URL } from './config';
 const IsChild = () => {
   const navigation = useNavigation();
   const [isChildPresent, setIsChildPresent] = useState(false); 
@@ -17,7 +17,7 @@ const IsChild = () => {
         childsName,
       };
       
-      const response = await fetch('http://192.168.1.34:3000/checkDataMedical', {
+      const response = await fetch(`${API_URL}/checkDataMedical`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,6 +67,7 @@ const IsChild = () => {
               placeholderTextColor={COLORS.black}
               value={anganwadiNo}
               onChangeText={(text) => setAnganwadiNo(text)}
+              keyboardType="numeric" // This line ensures the numeric keyboard
             />
           </View>
 
@@ -85,11 +86,11 @@ const IsChild = () => {
             <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>
 
-          {isChildPresent && (
+          {/* {isChildPresent && (
             <TouchableOpacity style={styles.viewFormButton} onPress={handleViewForm}>
               <Text style={styles.buttonText}>View Form</Text>
             </TouchableOpacity>
-          )}
+          )} */}
         </View>
       </ScrollView>
     </ImageBackground>

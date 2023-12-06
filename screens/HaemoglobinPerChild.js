@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, ScrollView } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import { View, StyleSheet, Text,TouchableOpacity,Image,ActivityIndicator, ScrollView } from 'react-native';
+import { VictoryChart, VictoryLine, VictoryAxis, VictoryScatter, VictoryLabel } from 'victory-native'; // Import Victory components
+import { API_URL } from './config';
+import { useNavigation } from '@react-navigation/native';
 
-const HaemoglobinPerChild = ({ route }) => {
-  const { anganwadiNo, childsName } = route.params;
-
+const HaemoglobinPerChild = ({ route ,toggleMenu}) => {
+  const { anganwadiNo, childsName, gender, dob } = route.params;
+  const navigation = useNavigation();
+ 
   // State variables to store data
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,8 +19,7 @@ const HaemoglobinPerChild = ({ route }) => {
           anganwadiNo,
           childsName,
         };
-
-        const response = await fetch('http://192.168.1.34:3000/getVisitsData', {
+        const response = await fetch(`${API_URL}/getVisitsData`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -26,8 +28,11 @@ const HaemoglobinPerChild = ({ route }) => {
         });
 
         if (response.status === 200) {
+          // const data = await response.json();
+          // setFormData(data);
           const data = await response.json();
-          setFormData(data);
+          const sortedData = data.data.sort((a, b) => new Date(a.visitDate) - new Date(b.visitDate));
+          setFormData({ data: sortedData });
         } else {
           console.log('Data not found in the database');
         }
@@ -57,29 +62,110 @@ const HaemoglobinPerChild = ({ route }) => {
 
   const tableData = haemoglobinData || [];
 
+  // const calculateTickValues = (haemoglobinData) => {
+  //   // Extract haemoglobin values
+  //   const haemoglobinValues = haemoglobinData.map((entry) => entry.haemoglobin);
+
+  //   // Calculate the minimum and maximum haemoglobin values
+
+  //   const maxValue = Math.max(...haemoglobinValues);
+
+  //   // Calculate the tick values based on the range
+  //   const tickValues = [];
+  //   for (let i = 0; i <= maxValue; i += 2) {
+  //     tickValues.push(i);
+  //   }
+
+  //   return tickValues;
+  // };
+
+  const calculateTickValues = (haemoglobinData) => {
+    const haemoglobinValues = haemoglobinData.map((entry) => entry.haemoglobin);
+    const sortedHaemoglobinValues = haemoglobinValues.sort((a, b) => a - b);
+    return sortedHaemoglobinValues;
+  };
+
+
+
+
   return (
     <ScrollView style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : (
-        <View>
+      <ScrollView style={styles.scrollView}>
+            {loading ? (
+                <ActivityIndicator size="large" color="#007AFF" />
+            ) : (
+                <View>
+                <View style={styles.childInfo}>
+              <Text style={styles.chartTitle}>Profile</Text>
+              <Text style={styles.infoText}>Name: {childsName}</Text>
+              <Text style={styles.infoText}>Gender: {gender}</Text>
+              <Text style={styles.infoText}>Date of Birth: {dob}</Text>
+            </View>
           <View style={styles.chart}>
             <Text style={styles.chartTitle}>Haemoglobin Chart</Text>
             <ScrollView horizontal={true}>
-            <LineChart
-              data={chartData}
-              width={350}
-              height={200}
-              yAxisLabel="Haemoglobin"
-              yAxisSuffix=""
-              chartConfig={{
-                backgroundGradientFrom: '#fff',
-                backgroundGradientTo: '#fff',
-                color: (opacity = 0.7) => `rgba(128, 0, 128, ${opacity})`,
-                decimalPlaces: 2,
-              }}
-              style={styles.chartStyle}
-            />
+              {/* <VictoryChart>
+                <VictoryLine
+                  data={haemoglobinData.map((entry, index) => ({
+                    x: `Visit ${index + 1}`,
+                    y: entry.haemoglobin,
+                  }))}
+                  style={{
+                    data: { stroke: '#3eb489' },
+                    parent: { border: '1px solid #ccc' },
+                  }}
+                  interpolation="natural" // Use natural interpolation for a smoother curve
+                  areaStyle={{ fill: '#3eb489', opacity: 0.3 }} // Specify fill color and opacity for the shaded area
+                />
+                <VictoryScatter
+                  data={haemoglobinData.map((entry, index) => ({
+                    x: `Visit ${index + 1}`,
+                    y: entry.haemoglobin,
+                  }))}
+                  size={5}
+                  style={{ data: { fill: '#3eb489' } }} // Set fill color for the scatter points
+                />
+                <VictoryAxis tickValues={haemoglobinData.map((_, index) => `Visit ${index + 1}`)} />
+                <VictoryAxis
+                  dependentAxis
+                  tickValues={calculateTickValues(haemoglobinData)}
+                />
+              </VictoryChart> */}
+              <VictoryChart padding={{ top: 20, bottom: 50, left: 70, right: 40 }}>
+                <VictoryLine
+                  data={haemoglobinData.map((entry, index) => ({
+                    x: `Visit ${index + 1}`,
+                    y: entry.haemoglobin,
+                  }))}
+                  style={{
+                    data: { stroke: '#3eb489' },
+                    parent: { border: '1px solid #ccc' },
+                  }}
+                  interpolation="natural"
+                  areaStyle={{ fill: '#3eb489', opacity: 0.3 }}
+                />
+                <VictoryScatter
+                  data={haemoglobinData.map((entry, index) => ({
+                    x: `Visit ${index + 1}`,
+                    y: entry.haemoglobin,
+                  }))}
+                  size={5}
+                  style={{ data: { fill: '#3eb489' } }}
+                />
+                <VictoryAxis
+                  label="Visits"
+                  style={{
+                    axisLabel: { padding: 30 },
+                  }}
+                  tickValues={haemoglobinData.map((_, index) => `Visit ${index + 1}`)}
+                />
+                <VictoryAxis
+                  label="Haemoglobin (in g/dL)"
+                  style={{
+                    axisLabel: { padding: 40, y: -20 },
+                  }}
+                  dependentAxis tickValues={calculateTickValues(haemoglobinData)} />
+              </VictoryChart>
             </ScrollView>
           </View>
 
@@ -108,11 +194,26 @@ const HaemoglobinPerChild = ({ route }) => {
           </View>
         </View>
       )}
+</ScrollView>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  menuButton: {
+    position: 'absolute',
+    bottom: -20,
+    right: 1,
+    zIndex: 1,
+
+    // Add any additional styles you need for positioning and appearance
+  },
+  menuIcon: {
+    width: 28,
+    height: 30,
+    // Add styles for your icon if needed
+  },
+
   container: {
     flex: 1,
     backgroundColor: '#f4f4f4',
@@ -160,7 +261,7 @@ const styles = StyleSheet.create({
   tableHeader: {
     backgroundColor: 'teal',
     padding: 8,
-    justifyContent :'space-evenly'
+    justifyContent: 'space-evenly'
   },
   tableHeaderText: {
     fontSize: 16,
@@ -183,8 +284,24 @@ const styles = StyleSheet.create({
   tableCellText: {
     fontSize: 14,
     color: '#333',
-    textAlign:'center'
+    textAlign: 'center'
   },
+childInfo: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        elevation: 4,
+        margin: 16,
+        padding: 16,
+      },
+      infoText: {
+        fontSize: 16,
+        marginBottom: 8,
+        color: 'black'
+      },
+      scrollView: {
+        flex: 1,
+        width: '100%',
+      },
 });
 
 export default HaemoglobinPerChild;
