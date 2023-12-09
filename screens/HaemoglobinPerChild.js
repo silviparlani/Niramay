@@ -48,8 +48,8 @@ const HaemoglobinPerChild = ({ route ,toggleMenu}) => {
 
   // Extract haemoglobin data from formData and filter out records where haemoglobin is not present
   const { data } = formData || {};
-  const haemoglobinData = data ? data.filter(entry => entry.haemoglobin !== null) : [];
-
+  const haemoglobinData = data ? data.filter(entry => entry.haemoglobin !== null && entry.haemoglobin !== "0") : [];
+  console.log(haemoglobinData);
   const chartData = {
     labels: haemoglobinData ? haemoglobinData.map((_, index) => `Visit ${index + 1}`) : [],
     datasets: [
@@ -61,23 +61,6 @@ const HaemoglobinPerChild = ({ route ,toggleMenu}) => {
   };
 
   const tableData = haemoglobinData || [];
-
-  // const calculateTickValues = (haemoglobinData) => {
-  //   // Extract haemoglobin values
-  //   const haemoglobinValues = haemoglobinData.map((entry) => entry.haemoglobin);
-
-  //   // Calculate the minimum and maximum haemoglobin values
-
-  //   const maxValue = Math.max(...haemoglobinValues);
-
-  //   // Calculate the tick values based on the range
-  //   const tickValues = [];
-  //   for (let i = 0; i <= maxValue; i += 2) {
-  //     tickValues.push(i);
-  //   }
-
-  //   return tickValues;
-  // };
 
   const calculateTickValues = (haemoglobinData) => {
     const haemoglobinValues = haemoglobinData.map((entry) => entry.haemoglobin);
@@ -104,34 +87,7 @@ const HaemoglobinPerChild = ({ route ,toggleMenu}) => {
           <View style={styles.chart}>
             <Text style={styles.chartTitle}>Haemoglobin Chart</Text>
             <ScrollView horizontal={true}>
-              {/* <VictoryChart>
-                <VictoryLine
-                  data={haemoglobinData.map((entry, index) => ({
-                    x: `Visit ${index + 1}`,
-                    y: entry.haemoglobin,
-                  }))}
-                  style={{
-                    data: { stroke: '#3eb489' },
-                    parent: { border: '1px solid #ccc' },
-                  }}
-                  interpolation="natural" // Use natural interpolation for a smoother curve
-                  areaStyle={{ fill: '#3eb489', opacity: 0.3 }} // Specify fill color and opacity for the shaded area
-                />
-                <VictoryScatter
-                  data={haemoglobinData.map((entry, index) => ({
-                    x: `Visit ${index + 1}`,
-                    y: entry.haemoglobin,
-                  }))}
-                  size={5}
-                  style={{ data: { fill: '#3eb489' } }} // Set fill color for the scatter points
-                />
-                <VictoryAxis tickValues={haemoglobinData.map((_, index) => `Visit ${index + 1}`)} />
-                <VictoryAxis
-                  dependentAxis
-                  tickValues={calculateTickValues(haemoglobinData)}
-                />
-              </VictoryChart> */}
-              <VictoryChart padding={{ top: 20, bottom: 50, left: 70, right: 40 }}>
+              <VictoryChart padding={{ top: 20, bottom: 70, left: 70, right: 40 }}>
                 <VictoryLine
                   data={haemoglobinData.map((entry, index) => ({
                     x: `Visit ${index + 1}`,
@@ -155,14 +111,15 @@ const HaemoglobinPerChild = ({ route ,toggleMenu}) => {
                 <VictoryAxis
                   label="Visits"
                   style={{
-                    axisLabel: { padding: 30 },
+                    axisLabel: { padding: 55 },
+                    tickLabels: {angle: -90, textAnchor: "end"}
                   }}
                   tickValues={haemoglobinData.map((_, index) => `Visit ${index + 1}`)}
                 />
                 <VictoryAxis
                   label="Haemoglobin (in g/dL)"
                   style={{
-                    axisLabel: { padding: 40, y: -20 },
+                    axisLabel: { padding: 45, y: -20 },
                   }}
                   dependentAxis tickValues={calculateTickValues(haemoglobinData)} />
               </VictoryChart>

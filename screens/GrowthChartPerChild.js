@@ -56,7 +56,7 @@ const GrowthChartPerChild = ({ route,toggleMenu }) => {
 
     // Before using haemoglobin array in the LineChart component
     const filledHaemoglobin = haemoglobin.map((value, index) => {
-        if (isNaN(value) && index > 0) {
+        if ((isNaN(value)||value===0) && index > 0) {
             // If the value is NaN and index is greater than 0, replace it with the previous numeric value
             let previousNumericValue = null;
 
@@ -68,8 +68,17 @@ const GrowthChartPerChild = ({ route,toggleMenu }) => {
             }
 
             return previousNumericValue || 0;
+        }else if (index === 0 && (isNaN(value) || value === 0)) {
+            // If the first value is NaN or 0, replace it with the next numeric value
+            for (let i = index + 1; i < haemoglobin.length; i++) {
+                if (!isNaN(haemoglobin[i])) {
+                    return haemoglobin[i];
+                }
+            }
+            return 0; // If no numeric value is found, default to 0
+        } else {
+            return value; // Handle other cases
         }
-        return value;
     });
 
     console.log(filledHaemoglobin);
