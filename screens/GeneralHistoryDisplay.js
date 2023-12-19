@@ -22,7 +22,7 @@ const GeneralHistoryDisplay = ({ route }) => {
     const [addVisitMode, setAddVisitMode] = useState(false);
     const [newVisit, setNewVisit] = useState({
         date: '',
-        noOfSupplements: '',
+        totalNoOfJars: '',
         haemoglobin: '',
         muac: '',
         weight: '',
@@ -30,6 +30,10 @@ const GeneralHistoryDisplay = ({ route }) => {
         difference: '',
         grade: '',
         observations: '',
+        iron: 0,
+        multivitamin: 0,
+        calcium: 0,
+        protein: 0,
     });
 
     useEffect(() => {
@@ -49,6 +53,7 @@ const GeneralHistoryDisplay = ({ route }) => {
 
                 if (response.status === 200) {
                     const data = await response.json();
+                    console.log("General History Data: ", data);
                     setGeneralHistoryData(data);
                 } else {
                     console.log('Data not found in the database');
@@ -80,6 +85,7 @@ const GeneralHistoryDisplay = ({ route }) => {
 
                 if (visitsResponse.status === 200) {
                     const visitsData = await visitsResponse.json();
+                    console.log("Visits Data: ", visitsData);
                     setVisitsData(visitsData);
                 } else {
                     console.log('Visits data not found in the database');
@@ -100,7 +106,7 @@ const GeneralHistoryDisplay = ({ route }) => {
         setAddVisitMode(false);
         setNewVisit({
             date: '',
-            noOfSupplements: '',
+            totalNoOfJars: '',
             haemoglobin: '',
             muac: '',
             weight: '',
@@ -108,6 +114,10 @@ const GeneralHistoryDisplay = ({ route }) => {
             difference: '',
             grade: '',
             observations: '',
+            iron: 0,
+            multivitamin: 0,
+            calcium: 0,
+            protein: 0,
         });
     };
 
@@ -117,7 +127,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                 anganwadiNo,
                 childName: childsName,
                 visitDate: newVisit.date,
-                noOfSupplements: newVisit.noOfSupplements,
+                totalNoOfJars: newVisit.totalNoOfJars,
                 haemoglobin: newVisit.haemoglobin,
                 muac: newVisit.muac,
                 weight: newVisit.weight,
@@ -125,8 +135,12 @@ const GeneralHistoryDisplay = ({ route }) => {
                 difference: newVisit.difference,
                 grade: newVisit.grade,
                 observations: newVisit.observations,
+                iron: newVisit.iron,
+                multivitamin: newVisit.multivitamin,
+                calcium: newVisit.calcium,
+                protein: newVisit.protein,
             };
-    
+
             const response = await fetch(`${API_URL}/visits`, {
                 method: 'POST',
                 headers: {
@@ -134,14 +148,14 @@ const GeneralHistoryDisplay = ({ route }) => {
                 },
                 body: JSON.stringify(requestData),
             });
-    
+
             if (response.status === 200) {
                 // Successfully inserted into the server, you can update the local state as well.
                 console.log('SILVIIIIIIIIIIIIIIIIIIII');
                 setVisitsData([...visitsData, newVisit]);
                 setNewVisit({
                     date: '',
-                    noOfSupplements: '',
+                    totalNoOfJars: '',
                     haemoglobin: '',
                     muac: '',
                     weight: '',
@@ -149,6 +163,10 @@ const GeneralHistoryDisplay = ({ route }) => {
                     difference: '',
                     grade: '',
                     observations: '',
+                    iron: 0,
+                    multivitamin: 0,
+                    calcium: 0,
+                    protein: 0,
                 });
                 setAddVisitMode(false);
             } else {
@@ -158,44 +176,60 @@ const GeneralHistoryDisplay = ({ route }) => {
             console.error('Error saving visit:', error);
         }
     };
-    
+
 
     const renderVisitItem = ({ item }) => (
         <View style={styles.visitContainer}>
             <View style={styles.visitRow}>
-                <Text style={styles.label}>Visit Date:</Text>
+                <Text style={styles.label}>Visit Date: </Text>
                 <Text style={styles.text}>{item.visitDate}</Text>
             </View>
             <View style={styles.visitRow}>
-                <Text style={styles.label}>No. of Supplements:</Text>
-                <Text style={styles.text}>{item.noOfSupplements}</Text>
-            </View>
-            <View style={styles.visitRow}>
-                <Text style={styles.label}>Haemoglobin:</Text>
-                <Text style={styles.text}>{item.haemoglobin}</Text>
-            </View>
-            <View style={styles.visitRow}>
-                <Text style={styles.label}>MUAC:</Text>
-                <Text style={styles.text}>{item.muac}</Text>
-            </View>
-            <View style={styles.visitRow}>
-                <Text style={styles.label}>Height:</Text>
+                <Text style={styles.label}>Height: </Text>
                 <Text style={styles.text}>{item.height}</Text>
             </View>
             <View style={styles.visitRow}>
-                <Text style={styles.label}>Weight:</Text>
+                <Text style={styles.label}>Weight: </Text>
                 <Text style={styles.text}>{item.weight}</Text>
             </View>
             <View style={styles.visitRow}>
-                <Text style={styles.label}>Difference:</Text>
+                <Text style={styles.label}>Haemoglobin: </Text>
+                <Text style={styles.text}>{item.haemoglobin}</Text>
+            </View>
+            <View style={styles.visitRow}>
+                <Text style={styles.label}>MUAC: </Text>
+                <Text style={styles.text}>{item.muac}</Text>
+            </View>
+            <View style={styles.visitRow}>
+                <Text style={styles.label}>No. of Jars of Iron: </Text>
+                <Text style={styles.text}>{item.iron}</Text>
+            </View>
+            <View style={styles.visitRow}>
+                <Text style={styles.label}>No. of Jars of Multivitamin: </Text>
+                <Text style={styles.text}>{item.multivitamin}</Text>
+            </View>
+            <View style={styles.visitRow}>
+                <Text style={styles.label}>No. of Jars of Calcium: </Text>
+                <Text style={styles.text}>{item.calcium}</Text>
+            </View>
+            <View style={styles.visitRow}>
+                <Text style={styles.label}>No. of Jars of Protein: </Text>
+                <Text style={styles.text}>{item.protein}</Text>
+            </View>
+            <View style={styles.visitRow}>
+                <Text style={styles.label}>Total No. of Supplements: </Text>
+                <Text style={styles.text}>{item.totalNoOfJars}</Text>
+            </View>
+            <View style={styles.visitRow}>
+                <Text style={styles.label}>Difference: </Text>
                 <Text style={styles.text}>{item.difference}</Text>
             </View>
             <View style={styles.visitRow}>
-                <Text style={styles.label}>Grade:</Text>
+                <Text style={styles.label}>Grade: </Text>
                 <Text style={styles.text}>{item.grade}</Text>
             </View>
             <View style={styles.visitRow}>
-                <Text style={styles.label}>Observations & Suggestions:</Text>
+                <Text style={styles.label}>Observations & Suggestions: </Text>
                 <Text style={styles.text}>{item.observations}</Text>
             </View>
         </View>
@@ -205,6 +239,20 @@ const GeneralHistoryDisplay = ({ route }) => {
         return <ActivityIndicator size="large" />;
     }
 
+    const SupplementCounter = ({ value, onIncrement, onDecrement }) => {
+        return (
+            <View style={styles.supplementCounter}>
+                <TouchableOpacity onPress={onDecrement} style={styles.counterButton}>
+                    <Text style={styles.buttonText}>-</Text>
+                </TouchableOpacity>
+                <Text style={styles.counterValue}>{value}</Text>
+                <TouchableOpacity onPress={onIncrement} style={styles.counterButton}>
+                    <Text style={styles.buttonText}>+</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
+
     return (
         <ScrollView style={styles.container}>
             {visitsData ? (
@@ -212,7 +260,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                     <View style={styles.fieldContainer}>
                         <Text style={styles.subSectionTitle}>Child's Health Data</Text>
                     </View>
-                    {generalHistoryData.map((healthData, index) => (
+                    {generalHistoryData && generalHistoryData.map((healthData, index) => (
                         <View key={index} style={styles.fieldContainer}>
                             <Text style={styles.label}>Common Cold:</Text>
                             <Text style={styles.text}>{healthData.commonCold === 1 ? 'Yes' : 'No'}</Text>
@@ -272,10 +320,38 @@ const GeneralHistoryDisplay = ({ route }) => {
                                 maxLength={10}
                                 style={styles.textInput}
                             />
-                            <Text style={styles.label}>No. of Supplements:</Text>
+                            <Text style={styles.label}>Iron:</Text>
+                            <SupplementCounter
+                                value={newVisit.iron}
+                                onIncrement={() => setNewVisit({...newVisit, iron: newVisit.iron + 1})}
+                                onDecrement={() => setNewVisit({...newVisit, iron: Math.max(0, newVisit.iron - 1)})}
+                            />
+
+                            <Text style={styles.label}>Calcium:</Text>
+                            <SupplementCounter
+                                value={newVisit.calcium}
+                                onIncrement={() => setNewVisit({...newVisit, calcium: newVisit.calcium + 1})}
+                                onDecrement={() => setNewVisit({...newVisit, calcium: Math.max(0, newVisit.calcium - 1)})}
+                            />
+
+                            <Text style={styles.label}>Protein:</Text>
+                            <SupplementCounter
+                                value={newVisit.protein}
+                                onIncrement={() => setNewVisit({...newVisit, protein: newVisit.protein + 1})}
+                                onDecrement={() => setNewVisit({...newVisit, protein: Math.max(0, newVisit.protein - 1)})}
+                            />
+
+                            <Text style={styles.label}>Multivitamin:</Text>
+                            <SupplementCounter
+                                value={newVisit.multivitamin}
+                                onIncrement={() => setNewVisit({...newVisit, multivitamin: newVisit.multivitamin + 1})}
+                                onDecrement={() => setNewVisit({...newVisit, multivitamin: Math.max(0, newVisit.multivitamin - 1)})}
+                            />
+
+                            <Text style={styles.label}>Total No. of Supplements:</Text>
                             <TextInput
-                                value={newVisit.noOfSupplements}
-                                onChangeText={(text) => setNewVisit({ ...newVisit, noOfSupplements: text })}
+                                value={newVisit.totalNoOfJars}
+                                onChangeText={(text) => setNewVisit({ ...newVisit, totalNoOfJars: text })}
                                 keyboardType="phone-pad"
                                 style={styles.textInput}
                             />
@@ -284,7 +360,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                             <TextInput
                                 value={newVisit.haemoglobin}
                                 onChangeText={(text) => setNewVisit({ ...newVisit, haemoglobin: text })}
-                                
+
                                 keyboardType="phone-pad"
                                 style={styles.textInput}
                             />
@@ -385,17 +461,17 @@ const styles = StyleSheet.create({
     subSectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color:COLORS.black,
+        color: COLORS.black,
     },
     label: {
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 5,
-        color:COLORS.black,
+        color: COLORS.black,
     },
     text: {
         fontSize: 16,
-        color:COLORS.black,
+        color: COLORS.black,
     },
     separator: {
         height: 1,
@@ -430,7 +506,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 10,
         marginBottom: 10,
-        color:COLORS.black,
+        color: COLORS.black,
     },
     saveVisitButton: {
         backgroundColor: 'teal',
@@ -468,6 +544,39 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 5,
     },
+    supplementContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      supplementCounter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 5,
+      },
+      counterButton: {
+        backgroundColor: 'teal',  // Set the background color to teal
+        borderRadius: 8,
+        //padding: 5,
+        marginRight: 5, // Add some margin between the buttons
+        height: 30, // Set a fixed height
+        width: 40,
+        justifyContent: 'center', // Center the content vertically
+        alignItems: 'center', // Center the content horizontally
+      },
+      buttonText: {
+        fontSize: 22,
+        color: 'white', // Set the text color to white
+        // textAlign: 'center',
+        // textAlignVertical: 'center', 
+        
+      },
+      counterValue: {
+        fontSize: 18,
+        paddingHorizontal: 15,
+        color: COLORS.black,
+        //lineHeight: 30,
+      },
+    
 });
 
 export default GeneralHistoryDisplay;

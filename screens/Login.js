@@ -51,7 +51,7 @@ const Login = ({ navigation }) => {
                 navigation.navigate('HomePage', { role, name });
             })
               .catch((error) => {
-                // console.error('Error logging in: ', error);
+                console.error('Error logging in: ', error);
                 // Show error alert with custom style
                 Alert.alert(
                   'Error',
