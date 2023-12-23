@@ -40,10 +40,10 @@ const CollapsibleSectionWithIcon = ({ title, children }) => {
       >
         <Text>{title}</Text>
         {collapsed ? (
-        <Image source={require('../assets/up.png')} style={styles.icon} />
-      ) : (
-        <Image source={require('../assets/down.png')} style={styles.icon} />
-      )}
+          <Image source={require('../assets/up.png')} style={styles.icon} />
+        ) : (
+          <Image source={require('../assets/down.png')} style={styles.icon} />
+        )}
       </TouchableOpacity>
       {collapsed && (
         <View style={[styles.sectionContent]}>
@@ -54,6 +54,19 @@ const CollapsibleSectionWithIcon = ({ title, children }) => {
   );
 };
 
+const SupplementCounter = ({ value, onIncrement, onDecrement }) => {
+  return (
+    <View style={styles.supplementCounter}>
+      <TouchableOpacity onPress={onDecrement} style={styles.counterButton}>
+        <Text style={styles.buttonText}>-</Text>
+      </TouchableOpacity>
+      <Text style={styles.counterValue}>{value}</Text>
+      <TouchableOpacity onPress={onIncrement} style={styles.counterButton}>
+        <Text style={styles.buttonText}>+</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const VisitRow = ({ visit, index, handleVisitFieldChange }) => {
   return (
@@ -76,10 +89,38 @@ const VisitRow = ({ visit, index, handleVisitFieldChange }) => {
         style={styles.textInput}
       />
 
-      <Text style={styles.label}>No. of Supplements:</Text>
+      <Text style={styles.label}>Iron:</Text>
+      <SupplementCounter
+        value={visit.iron}
+        onIncrement={() => handleVisitFieldChange(index, 'iron', visit.iron + 1)}
+        onDecrement={() => handleVisitFieldChange(index, 'iron', Math.max(0, visit.iron - 1))}
+      />
+
+      <Text style={styles.label}>Calcium:</Text>
+      <SupplementCounter
+        value={visit.calcium}
+        onIncrement={() => handleVisitFieldChange(index, 'calcium', visit.calcium + 1)}
+        onDecrement={() => handleVisitFieldChange(index, 'calcium', Math.max(0, visit.calcium - 1))}
+      />
+
+      <Text style={styles.label}>Protein:</Text>
+      <SupplementCounter
+        value={visit.protein}
+        onIncrement={() => handleVisitFieldChange(index, 'protein', visit.protein + 1)}
+        onDecrement={() => handleVisitFieldChange(index, 'protein', Math.max(0, visit.protein - 1))}
+      />
+
+      <Text style={styles.label}>Multivitamin:</Text>
+      <SupplementCounter
+        value={visit.multivitamin}
+        onIncrement={() => handleVisitFieldChange(index, 'multivitamin', visit.multivitamin + 1)}
+        onDecrement={() => handleVisitFieldChange(index, 'multivitamin', Math.max(0, visit.multivitamin - 1))}
+      />
+
+      <Text style={styles.label}>Total No. of Supplements:</Text>
       <TextInput
-        value={visit.noOfSupplements}
-        onChangeText={(text) => handleVisitFieldChange(index, 'noOfSupplements', text)}
+        value={visit.totalNoOfJars}
+        onChangeText={(text) => handleVisitFieldChange(index, 'totalNoOfJars', text)}
         keyboardType="phone-pad"
         style={styles.textInput}
       />
@@ -122,17 +163,17 @@ const VisitRow = ({ visit, index, handleVisitFieldChange }) => {
         onChangeText={(text) => handleVisitFieldChange(index, 'difference', text)}
         style={styles.textInput}
       />
-<Text style={styles.label}>Observations And Suggestions :</Text>
-          <TextInput
-            label="Observations and Suggestions"
-            multiline
-            value={visit.observations}
-            onChangeText={(text) =>
-              handleTextInputChange('observations', text)
-            }
-            style={styles.multilineTextInput}
-          />
-      
+      <Text style={styles.label}>Observations And Suggestions :</Text>
+      <TextInput
+        label="Observations and Suggestions"
+        multiline
+        value={visit.observations}
+        onChangeText={(text) =>
+          handleVisitFieldChange(index, 'observations', text)
+        }
+        style={styles.multilineTextInput}
+      />
+
     </View>
   );
 };
@@ -177,12 +218,24 @@ const GeneralHistoryForm = () => {
     motion: '',
     otherSigns: '',
     visits: [],
+    vaccination: {
+      BCG: false,
+      POLIO: false,
+      IPV: false,
+      PCV: false,
+      PENTAVALENT: false,
+      ROTAVIRUS: false,
+      MR: false,
+      VITAMIN_A: false,
+      DPT: false,
+      TD: false,
+    },
   });
 
   const handleAddVisit = () => {
     const newVisit = {
       date: '',
-      noOfSupplements: '',
+      totalNoOfJars: '',
       haemoglobin: '',
       muac: '',
       weight: '',
@@ -190,13 +243,18 @@ const GeneralHistoryForm = () => {
       difference: '',
       grade: '',
       observations: '',
-      
+      iron: 0,
+      multivitamin: 0,
+      calcium: 0,
+      protein: 0,
+
     };
     setGeneralHistory((prevHistory) => ({
       ...prevHistory,
       visits: [...prevHistory.visits, newVisit],
     }));
   };
+  
 
   const route = useRoute();
   const { anganwadiNo, childsName } = route.params;
@@ -206,8 +264,8 @@ const GeneralHistoryForm = () => {
 
     try {
       const generalHistoryData = {
-        anganwadi_no: anganwadiNo,
-        child_name: childsName,
+        anganwadiNo: anganwadiNo,
+        childName: childsName,
         vomiting: generalHistory.vomiting, // Accessing values from generalHistory state
         fever: generalHistory.fever,
         commonCold: generalHistory.commonCold,
@@ -226,22 +284,35 @@ const GeneralHistoryForm = () => {
         motion: generalHistory.motion,
         otherSigns: generalHistory.otherSigns,
         observationsAndSuggestions: generalHistory.observationsAndSuggestions,
+        bcg: generalHistory.vaccination.BCG,
+        polio: generalHistory.vaccination.POLIO,
+        ipv: generalHistory.vaccination.IPV,
+        pcv: generalHistory.vaccination.PCV,
+        pentavalent: generalHistory.vaccination.PENTAVALENT,
+        rotavirus: generalHistory.vaccination.ROTAVIRUS,
+        mr: generalHistory.vaccination.MR,
+        vitamin_a: generalHistory.vaccination.VITAMIN_A,
+        dpt: generalHistory.vaccination.DPT,
+        td: generalHistory.vaccination.TD,
       };
       console.log(generalHistoryData);
-      const response = await fetch(`${ API_URL }/generalHistory, {
+      //console.log('API URL', API_URL);
+      const response = await fetch(`${API_URL}/generalHistory`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(generalHistoryData),
-      }`);
+      });
+      
 
       if (response.status === 200) {
         //console.log(response.body);
         console.log('Form submitted successfully');
         // Add any additional logic or navigation here after successful submission
       } else {
-        console.error('Error submitting form');
+        console.log(response);
+        console.error('Error submitting form - response error');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -256,33 +327,39 @@ const GeneralHistoryForm = () => {
     console.log('Child name: ', childsName);
     try {
       for (const visit of generalHistory.visits) {
-
+        const [day, month, year] = visit.date.split('-');
+        const formattedDate = `${year}-${month}-${day}`;
         const visitData = {
           anganwadiNo: anganwadiNo,
           childName: childsName,
-          visitDate: visit.date,
+          visitDate: formattedDate,
           haemoglobin: visit.haemoglobin,
-          noOfSupplements: visit.noOfSupplements,
+          totalNoOfJars: visit.totalNoOfJars,
           muac: visit.muac,
           weight: visit.weight,
           height: visit.height,
           difference: visit.difference,
           grade: visit.grade,
+          observations: visit.observations,
+          iron: visit.iron,
+          multivitamin: visit.multivitamin,
+          calcium: visit.calcium,
+          protein: visit.protein,
         };
         console.log(visitData);
-        const response = await fetch(`${ API_URL }/visits, {
+        const response = await fetch(`${API_URL}/visits`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(visitData),
-        }`);
+        });
 
         if (response.status === 200) {
           console.log('Visit data submitted successfully');
           // Add any additional logic or navigation here after each successful submission
         } else {
-          console.error('Error submitting visit data');
+          console.error('Error submitting visit data - response error');
         }
       }
     } catch (error) {
@@ -300,6 +377,8 @@ const GeneralHistoryForm = () => {
   };
 
   const handleVisitFieldChange = (index, field, value) => {
+    // Assuming the date field is 'visit.date'
+   
     const newVisits = [...generalHistory.visits];
     newVisits[index][field] = value;
     setGeneralHistory((prevHistory) => ({
@@ -307,6 +386,7 @@ const GeneralHistoryForm = () => {
       visits: newVisits,
     }));
   };
+  
 
   const handleToggle = (field) => {
     setGeneralHistory((prevHistory) => ({
@@ -314,12 +394,22 @@ const GeneralHistoryForm = () => {
       [field]: !prevHistory[field],
     }));
   };
-  
+
 
   const handleTextInputChange = (field, value) => {
     setGeneralHistory((prevHistory) => ({
       ...prevHistory,
       [field]: value,
+    }));
+  };
+
+  const handleToggleVaccination = (vaccine) => {
+    setGeneralHistory((prevHistory) => ({
+      ...prevHistory,
+      vaccination: {
+        ...prevHistory.vaccination,
+        [vaccine]: !prevHistory.vaccination[vaccine],
+      },
     }));
   };
 
@@ -331,70 +421,70 @@ const GeneralHistoryForm = () => {
         <CollapsibleSectionWithIcon title={<Text style={styles.sectionTitle}>Test / चाचणी</Text>}>
 
 
-        <View style={styles.checkboxContainer}>
-  <Text style={styles.checkboxLabel}>Vomiting</Text>
-  <CheckBox
-    checkBoxColor="teal"
-    onClick={() => handleToggle('vomiting')}
-    isChecked={generalHistory.vomiting}
-    textStyle={{ fontSize: 16, color: 'black' }}
-    style={{ marginLeft: 155 }} // Add marginRight to create space
-  />
-</View>
+          <View style={styles.checkboxContainer}>
+            <Text style={styles.checkboxLabel}>Vomiting</Text>
+            <CheckBox
+              checkBoxColor="teal"
+              onClick={() => handleToggle('vomiting')}
+              isChecked={generalHistory.vomiting}
+              textStyle={{ fontSize: 16, color: 'black' }}
+              style={{ marginLeft: 155 }} // Add marginRight to create space
+            />
+          </View>
 
-<View style={styles.checkboxContainer}>
-  <Text style={styles.checkboxLabel}>Fever</Text>
-  <CheckBox
-    checkBoxColor="teal"
-    onClick={() => handleToggle('fever')}
-    isChecked={generalHistory.fever}
-    textStyle={{ fontSize: 16, color: 'black' }}
-    style={{ marginLeft:180 }} // Add marginRight to create space
-  />
-</View>
+          <View style={styles.checkboxContainer}>
+            <Text style={styles.checkboxLabel}>Fever</Text>
+            <CheckBox
+              checkBoxColor="teal"
+              onClick={() => handleToggle('fever')}
+              isChecked={generalHistory.fever}
+              textStyle={{ fontSize: 16, color: 'black' }}
+              style={{ marginLeft: 180 }} // Add marginRight to create space
+            />
+          </View>
 
-<View style={styles.checkboxContainer}>
-  <Text style={styles.checkboxLabel}>Common Cold</Text>
-  <CheckBox
-  checkBoxColor="teal"
-  onClick={() => handleToggle('commonCold')}
-  isChecked={generalHistory.commonCold}
-  textStyle={{ fontSize: 16, color: 'black' }}
-  style={{ marginLeft: 115 }}
-/>
-</View>
-<View style={styles.checkboxContainer}>
-  <Text style={styles.checkboxLabel}>Cough</Text>
-  <CheckBox
-  checkBoxColor="teal"
-  onClick={() => handleToggle('cough')}
-  isChecked={generalHistory.cough}
-  textStyle={{ fontSize: 16, color: 'black' }}
-  style={{ marginLeft: 170 }}
-/>
+          <View style={styles.checkboxContainer}>
+            <Text style={styles.checkboxLabel}>Common Cold</Text>
+            <CheckBox
+              checkBoxColor="teal"
+              onClick={() => handleToggle('commonCold')}
+              isChecked={generalHistory.commonCold}
+              textStyle={{ fontSize: 16, color: 'black' }}
+              style={{ marginLeft: 115 }}
+            />
+          </View>
+          <View style={styles.checkboxContainer}>
+            <Text style={styles.checkboxLabel}>Cough</Text>
+            <CheckBox
+              checkBoxColor="teal"
+              onClick={() => handleToggle('cough')}
+              isChecked={generalHistory.cough}
+              textStyle={{ fontSize: 16, color: 'black' }}
+              style={{ marginLeft: 170 }}
+            />
 
-</View>
-<View style={styles.checkboxContainer}>
-  <Text style={styles.checkboxLabel}>Oedema</Text>
-  <CheckBox
-  checkBoxColor="teal"
-  onClick={() => handleToggle('oedema')}
-  isChecked={generalHistory.oedema}
-  textStyle={{ fontSize: 16, color: 'black' }}
-  style={{ marginLeft: 155 }}
-/>
+          </View>
+          <View style={styles.checkboxContainer}>
+            <Text style={styles.checkboxLabel}>Oedema</Text>
+            <CheckBox
+              checkBoxColor="teal"
+              onClick={() => handleToggle('oedema')}
+              isChecked={generalHistory.oedema}
+              textStyle={{ fontSize: 16, color: 'black' }}
+              style={{ marginLeft: 155 }}
+            />
 
-</View>
-<View style={styles.checkboxContainer}>
-  <Text style={styles.checkboxLabel}>Vaccination</Text>
-  <CheckBox
-    checkBoxColor="teal"
-    onClick={() => handleToggle('vaccinationDone')}
-    isChecked={generalHistory.vaccinationDone}
-    textStyle={{ fontSize: 16, color: 'black' }}
-    style={{ marginLeft:130 }}
-  />
-</View>
+          </View>
+          <View style={styles.checkboxContainer}>
+            <Text style={styles.checkboxLabel}>Vaccination</Text>
+            <CheckBox
+              checkBoxColor="teal"
+              onClick={() => handleToggle('vaccinationDone')}
+              isChecked={generalHistory.vaccinationDone}
+              textStyle={{ fontSize: 16, color: 'black' }}
+              style={{ marginLeft: 130 }}
+            />
+          </View>
 
           <Text style={styles.label}>Appetite Test:</Text>
           <TextInput
@@ -415,7 +505,7 @@ const GeneralHistoryForm = () => {
             style={styles.multilineTextInput}
           />
 
-         
+
 
           <Text style={styles.label}>Any Other :</Text>
           <TextInput
@@ -492,7 +582,7 @@ const GeneralHistoryForm = () => {
           />
         </CollapsibleSectionWithIcon>
 
-        
+
 
         <CollapsibleSectionWithIcon title={<Text style={styles.sectionTitle}>Visits / भेटी</Text>}>
           <VisitsTable
@@ -501,6 +591,21 @@ const GeneralHistoryForm = () => {
             handleRemoveVisit={handleRemoveVisit}
             handleVisitFieldChange={handleVisitFieldChange}
           />
+        </CollapsibleSectionWithIcon>
+
+        <CollapsibleSectionWithIcon title={<Text style={styles.sectionTitle}>Vaccination / टीकाकरण</Text>}>
+          {Object.keys(generalHistory.vaccination).map((vaccine, index) => (
+            <View key={index} style={[styles.checkboxContainer, { justifyContent: 'space-between' }]}>
+              <Text style={styles.checkboxLabel}>{vaccine}</Text>
+              <CheckBox
+                checkBoxColor="teal"
+                onClick={() => handleToggleVaccination(vaccine)}
+                isChecked={generalHistory.vaccination[vaccine]}
+                textStyle={{ fontSize: 16, color: 'black' }}
+                style={{ marginLeft: 10, }} // Adjust margin as needed
+              />
+            </View>
+          ))}
         </CollapsibleSectionWithIcon>
 
         <TouchableOpacity
@@ -589,7 +694,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d0d0d0',
     borderRadius: 8,
-    color:COLORS.black,
+    color: COLORS.black,
   },
   multilineTextInput: {
     backgroundColor: 'white',
@@ -600,14 +705,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     height: hp('8%'),
     textAlignVertical: 'top',
-    color:COLORS.black,
+    color: COLORS.black,
   },
   subSectionTitle: {
     fontSize: wp('6%'),
     fontWeight: 'bold',
     marginTop: hp('2%'),
     marginBottom: hp('1%'),
-    color:COLORS.black,
+    color: COLORS.black,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -649,25 +754,57 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
-    color:COLORS.black,
-    marginTop: 10, 
-    marginBottom: 10 
-},
-checkboxContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 10,
-},
-checkboxText: {
-  
-  fontSize: 16,
-  color: 'black', // Adjust the color to make text visible
-},
-checkboxLabel: {
-  marginLeft: 10, // Add margin to separate checkbox from label
-  fontSize: 16,
-  color: COLORS.black,
-},
+    color: COLORS.black,
+    marginTop: 10,
+    marginBottom: 10
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  checkboxText: {
+
+    fontSize: 16,
+    color: 'black', // Adjust the color to make text visible
+  },
+  checkboxLabel: {
+    marginLeft: 10, // Add margin to separate checkbox from label
+    fontSize: 16,
+    color: COLORS.black,
+  },
+  supplementContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  supplementCounter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  counterButton: {
+    backgroundColor: 'teal',  // Set the background color to teal
+    borderRadius: 8,
+    //padding: 5,
+    marginRight: 5, // Add some margin between the buttons
+    height: 30, // Set a fixed height
+    width: 40,
+    justifyContent: 'center', // Center the content vertically
+    alignItems: 'center', // Center the content horizontally
+  },
+  buttonText: {
+    fontSize: 22,
+    color: 'white', // Set the text color to white
+    // textAlign: 'center',
+    // textAlignVertical: 'center', 
+    
+  },
+  counterValue: {
+    fontSize: 18,
+    paddingHorizontal: 15,
+    color: COLORS.black,
+    //lineHeight: 30,
+  },
 
 });
 

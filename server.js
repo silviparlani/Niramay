@@ -45,7 +45,36 @@ app.get('/api/data', (req, res) => {
   });
 });
 // Add this code to your server.js file
+app.post('/checkData2', (req, res) => {
+  const { anganwadiNo, childsName } = req.body;
 
+  if (!anganwadiNo || !childsName) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Check 'child' table
+  const querychild = `SELECT COUNT(*) AS count FROM child WHERE anganwadi_no = ? AND child_name = ?`;
+  db.query(querychild, [anganwadiNo, childsName], (err, results) => {
+    if (err) {
+      console.error('Error checking child table:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    // Check 'generalhistory' table
+    const queryGeneralHistory = `SELECT COUNT(*) AS count FROM generalhistory WHERE anganwadiNo = ? AND childName = ?`;
+    db.query(queryGeneralHistory, [anganwadiNo, childsName], (err, genHistoryResults) => {
+      if (err) {
+        console.error('Error checking generalhistory table:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+
+      const customerDataPresent = results[0].count > 0;
+      const generalHistoryDataPresent = genHistoryResults[0].count > 0;
+
+      res.json({ customerDataPresent, generalHistoryDataPresent });
+    });
+  });
+});
 // User registration endpoint
 app.post('/api/register', (req, res) => {
     const { name, email, password, phoneNumber, post } = req.body;
@@ -98,7 +127,7 @@ app.post('/api/register', (req, res) => {
     }
   
     // Insert form data into the MySQL table
-    db.query('INSERT INTO Customers SET ?', formData, (err, result) => {
+    db.query('INSERT INTO child SET ?', formData, (err, result) => {
       if (err) {
         console.error('Error inserting form data:', err);
         res.status(500).send('Error inserting form data');
@@ -112,7 +141,7 @@ app.post('/checkData', (req, res) => {
     const { anganwadiNo, childsName } = req.body;
   
     // Query the database to check if the data exists
-    const sql = 'SELECT * FROM Customers WHERE anganwadi_no = ? AND child_name = ?';
+    const sql = 'SELECT * FROM child WHERE anganwadi_no = ? AND child_name = ?';
     const values = [anganwadiNo, childsName];
   
     db.query(sql, values, (err, result) => {
@@ -135,7 +164,7 @@ app.post('/checkData', (req, res) => {
     const { anganwadiNo, childName } = req.body;
   
     const query = `
-      SELECT anganwadi_no, child_name FROM customers
+      SELECT anganwadi_no, child_name FROM child
       WHERE anganwadi_no = ? AND child_name = ?
     `;
   
@@ -157,8 +186,8 @@ app.post('/checkData', (req, res) => {
   app.post('/updatePhoneNumber', (req, res) => {
     const { anganwadiNo, childsName, updatedPhoneNumber } = req.body;
   
-    // Update the phone number in the customers table
-    const sql = `UPDATE customers SET child_phone = ? WHERE anganwadi_no = ? AND child_name = ?`;
+    // Update the phone number in the child table
+    const sql = `UPDATE child SET child_phone = ? WHERE anganwadi_no = ? AND child_name = ?`;
   
     db.query(sql, [updatedPhoneNumber, anganwadiNo, childsName], (err, result) => {
       if (err) {
@@ -174,8 +203,8 @@ app.post('/checkData', (req, res) => {
   app.post('/updateAssistantNumber', (req, res) => {
     const { anganwadiNo, childsName, updatedPhoneNumber } = req.body;
   
-    // Update the phone number in the customers table
-    const sql = `UPDATE customers SET assistant_phone= ? WHERE anganwadi_no = ? AND child_name = ?`;
+    // Update the phone number in the child table
+    const sql = `UPDATE child SET assistant_phone= ? WHERE anganwadi_no = ? AND child_name = ?`;
   
     db.query(sql, [updatedPhoneNumber, anganwadiNo, childsName], (err, result) => {
       if (err) {
@@ -239,7 +268,7 @@ app.post('/updateSibling', (req, res) => {
   const { anganwadiNo, childsName, newTotalFamilyMembers, newTotalSiblings } = req.body;
 
   // Update the database query
-  const sql = `UPDATE customers 
+  const sql = `UPDATE child 
                SET total_family_members = ?, TotalSiblings = ?
                WHERE child_name = ? AND anganwadi_no = ?`;
 
@@ -258,7 +287,7 @@ app.post('/updateSibling', (req, res) => {
     const { anganwadiNo, childsName } = req.body;
     console.log(anganwadiNo,childsName)
     // Query the database to fetch the data
-    const sql = 'SELECT * FROM Customers WHERE anganwadi_no = ? AND child_name = ?';
+    const sql = 'SELECT * FROM child WHERE anganwadi_no = ? AND child_name = ?';
     const values = [anganwadiNo, childsName];
   
     db.query(sql, values, (err, result) => {
@@ -423,7 +452,7 @@ app.post('/getGeneralHistory', (req, res) => {
   });
 
   // app.get('/childGenderData', (req, res) => {
-  //   const sql = 'SELECT bit_name, child_gender, COUNT(*) as count FROM customers GROUP BY bit_name, child_gender';
+  //   const sql = 'SELECT bit_name, child_gender, COUNT(*) as count FROM child GROUP BY bit_name, child_gender';
   //   db.query(sql, (err, result) => {
   //     if (err) {
   //       console.error('Error querying the database: ', err);
@@ -436,7 +465,7 @@ app.post('/getGeneralHistory', (req, res) => {
 
 
   app.get('/childGenderData', (req, res) => {
-    const query = 'SELECT bit_name, child_gender FROM customers'; // Replace with your actual SQL query
+    const query = 'SELECT bit_name, child_gender FROM child'; // Replace with your actual SQL query
     db.query(query, (err, results) => {
       if (err) {
         console.error('Error executing MySQL query: ', err);
@@ -452,7 +481,7 @@ app.post('/getGeneralHistory', (req, res) => {
 
 
   app.get('/stack_data', (req, res) => {
-    const query = 'SELECT bit_name, child_name, child_gender, COUNT(*) AS child_count FROM customers GROUP BY  bit_name,child_gender';
+    const query = 'SELECT bit_name, child_name, child_gender, COUNT(*) AS child_count FROM child GROUP BY  bit_name,child_gender';
   
     db.query(query, (err, rows) => {
       if (err) {
@@ -467,7 +496,7 @@ app.post('/getGeneralHistory', (req, res) => {
   
 
   app.get('/stack_demo', (req, res) => {
-    const query = 'SELECT bit_name, child_gender FROM customers'; // Replace with your table name
+    const query = 'SELECT bit_name, child_gender FROM child'; // Replace with your table name
     connection.query(query, (err, results) => {
       if (err) {
         console.error('Error querying database:', err);
@@ -492,7 +521,7 @@ app.post('/getGeneralHistory', (req, res) => {
   
 
   app.get('/bit_name', (req, res) => {
-    const query = 'SELECT DISTINCT bit_name FROM customers';
+    const query = 'SELECT DISTINCT bit_name FROM child';
   
     db.query(query, (err, results) => {
       if (err) {
@@ -525,7 +554,7 @@ app.post('/getGeneralHistory', (req, res) => {
     const { bit_name } = req.params;
   
     // Fetch all anganwadi_no values associated with the given bit_name
-    const query1 = 'SELECT anganwadi_no FROM customers WHERE bit_name = ?';
+    const query1 = 'SELECT anganwadi_no FROM child WHERE bit_name = ?';
     db.query(query1, [bit_name], (err, results) => {
       if (err) {
         console.error('Error querying the database: ', err);
@@ -565,7 +594,7 @@ app.get('/child_distribution/:bit_name/:visitDate(*)', (req, res) => {
   const query = `
   SELECT grade, COUNT(*) AS count
   FROM visits v
-  JOIN customers c ON v.anganwadiNo = c.anganwadi_no AND v.childName = c.child_name
+  JOIN child c ON v.anganwadiNo = c.anganwadi_no AND v.childName = c.child_name
   WHERE c.bit_name = ? AND v.visitDate = ?
   GROUP BY grade;
   
@@ -592,7 +621,7 @@ app.get('/child_distribution/:bit_name/:visitDate(*)', (req, res) => {
 
 
 app.get('/anganwadi-count', (req, res) => {
-  const query = 'SELECT bit_name, COUNT(DISTINCT anganwadi_no) AS anganwadi_count FROM customers GROUP BY bit_name';
+  const query = 'SELECT bit_name, COUNT(DISTINCT anganwadi_no) AS anganwadi_count FROM child GROUP BY bit_name';
 
   db.query(query, (error, results) => {
     if (error) {
@@ -613,7 +642,7 @@ app.get('/anganwadi-count', (req, res) => {
 
 app.get('/childGenderData', (req, res) => {
   // Replace 'your_table_name' with the name of your MySQL table
-  const query = 'SELECT * FROM customers';
+  const query = 'SELECT * FROM child';
   console.log("childGenderData API is getting hit");
   db.query(query, (err, results) => {
     if (err) {
@@ -622,7 +651,7 @@ app.get('/childGenderData', (req, res) => {
     } else {
       res.json(results);
     }
-    console.log("Result of SELECT * FROM Customers: ", results);
+    console.log("Result of SELECT * FROM child: ", results);
   });
 });
 
@@ -632,7 +661,7 @@ app.get('/childData', (req, res) => {
   const query = `
     SELECT bit_name, 
            COUNT(*) as total_children_count
-    FROM customers
+    FROM child
     GROUP BY bit_name
   `;
 
@@ -674,7 +703,7 @@ app.get('/childDataGender', (req, res) => {
     SELECT bit_name,
            SUM(CASE WHEN child_gender = 'male' THEN 1 ELSE 0 END) as male_count,
            SUM(CASE WHEN child_gender = 'female' THEN 1 ELSE 0 END) as female_count
-    FROM customers
+    FROM child
     GROUP BY bit_name
   `;
 
@@ -702,7 +731,7 @@ app.get('/gender_distribution/:bit_name/', (req, res) => {
   // Fetch child distribution data for the provided bit_name
   const query = `
     SELECT child_gender AS gender, COUNT(*) AS count
-    FROM customers
+    FROM child
     WHERE bit_name = ?
     GROUP BY child_gender;
   `;
@@ -723,7 +752,7 @@ app.get('/gender_distribution/:bit_name/', (req, res) => {
     res.json(childDistribution);
   });
 });                                                                                                                                                                                                                             app.get('/anganwadi-count', (req, res) => {
-  const query = 'SELECT bit_name, COUNT(DISTINCT anganwadi_no) AS anganwadi_count FROM customers GROUP BY bit_name';
+  const query = 'SELECT bit_name, COUNT(DISTINCT anganwadi_no) AS anganwadi_count FROM child GROUP BY bit_name';
 
   db.query(query, (error, results) => {
     if (error) {

@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, ScrollView } from 'react-native';
-import { VictoryChart, VictoryBar, VictoryAxis } from 'victory-native'; // Import Victory components
+import React, { useEffect, useState, useRef } from 'react';
+import { View, StyleSheet, Text, ActivityIndicator, ScrollView, TouchableOpacity,Image } from 'react-native';
+import { VictoryChart, VictoryBar, VictoryAxis } from 'victory-native';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import ViewShot from 'react-native-view-shot';
 import { API_URL } from './config.js';
 import { useNavigation } from '@react-navigation/native';
 
-const WeightPerChild = ({ route,toggleMenu }) => {
+const WeightPerChild = ({ route, toggleMenu }) => {
   const { anganwadiNo, childsName, gender, dob } = route.params;
   const navigation = useNavigation();
-  
-  // State variables to store data
+
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const chartRef = useRef();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,7 +21,7 @@ const WeightPerChild = ({ route,toggleMenu }) => {
           anganwadiNo,
           childsName,
         };
-        
+
         const response = await fetch(`${API_URL}/getVisitsData`, {
           method: 'POST',
           headers: {
@@ -44,83 +46,221 @@ const WeightPerChild = ({ route,toggleMenu }) => {
     fetchData();
   }, [anganwadiNo, childsName]);
 
-  // Extract weight data and visit dates from formData
   const { data } = formData || {};
   const weights = data ? data.map((entry) => parseFloat(entry.weight)) : [];
   const visitDates = data ? data.map((entry) => entry.visitDate) : [];
-
-  // Create an array of custom labels for the graph ("visit1," "visit2," etc.)
   const customLabels = weights.map((_, index) => `visit${index + 1}`);
-
-  // Create table data with visit dates
   const tableData = visitDates.map((visitDate, index) => ({
     visit: visitDate,
     weight: `${parseFloat(weights[index]).toFixed(2)} kg`,
   }));
 
+  const generateHTML = (chartImageUri) => {
+    const chartHtml = `
+      <div style="margin: 16px; background-color: white; border-radius: 10px; elevation: 4; padding: 16px;">
+        <img src="${chartImageUri}" alt="Chart" style="width: 100%; height: 400px; object-fit: contain;"/>
+      </div>
+    `;
+
+    const tableHtml = `
+      <div style="background-color: #fff; border-radius: 15px; box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3); elevation: 8; margin: 16px;">
+        <Text style="font-size: 20px; font-weight: bold; margin: 16px; color: #333; text-align: center;">Weight Chart Per Child</Text>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc; font-weight: bold;">Visit Date</th>
+            <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ccc; font-weight: bold;">Weight</th>
+          </tr>
+          ${tableData.map(item => `
+            <tr>
+              <td style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">${item.visit}</td>
+              <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ccc;">${item.weight}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    `;
+
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f0f0f0;
+            }
+            .headerContainer {
+              display: flex;
+              align-items: left;
+              border-bottom: 1px solid orange; /* Thin line below the heading */
+              padding-bottom: 15px; /* Adjust as needed */
+            }
+            img {
+              width: 100px; 
+              height: 100px;
+            }
+            .headingLine {
+              font-size: 30;
+              color: orange;
+              margin-left: 20px;
+              margin-top: 20px;
+              padding-bottom: 3px;
+            }
+            .subheading {
+              font-size: 18px;
+              color: orange;
+              margin-left: 20px;
+            }
+            .textContainer {
+              margin-left: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="headerContainer">
+          <img src="file:///android_asset/images/logo2.jpg" />
+            <div class="textContainer">
+              <div class="headingLine">Niramay Bharat</div>
+              <div class="subheading">सर्वे पि सुखिनः सन्तु | सर्वे सन्तु निरामय: ||</div>
+            </div>
+          </div>
+          <div class="profile">
+            <div class="profile-title">Profile</div>
+            <div class="info-text">Name: ${childsName}</div>
+            <div class="info-text">Gender: ${gender}</div>
+            <div class="info-text">Date of Birth: ${dob}</div>
+         
+        </div>
+          <Text style="font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #333; text-align: center;">Weight Chart Per Child</Text>
+          ${chartHtml}
+          <Text style="font-size: 20px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; color: #333; text-align: center;">Summary Table</Text>
+          ${tableHtml}
+        </body>
+      </html>
+    `;
+
+    return htmlContent;
+  };
+
+  const captureChart = async () => {
+    try {
+      return await chartRef.current.capture();
+    } catch (error) {
+      console.error('Error capturing chart:', error);
+      return null;
+    }
+  };
+
+  const generatePDF = async () => {
+    try {
+      const chartImageUri = await captureChart();
+
+      if (chartImageUri) {
+        const options = {
+          html: generateHTML(chartImageUri),
+          fileName: 'WeightChartPerChildReport',
+          directory: 'Documents',
+        };
+
+        const pdf = await RNHTMLtoPDF.convert(options);
+        console.log(pdf.filePath);
+      } else {
+        console.error('Chart capture failed.');
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <ScrollView style={styles.scrollView}>
-            {loading ? (
-                <ActivityIndicator size="large" color="#007AFF" />
-            ) : (
-                <View>
-                <View style={styles.childInfo}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#007AFF" />
+        ) : (
+          <View>
+            <View style={styles.childInfo}>
               <Text style={styles.chartTitle}>Profile</Text>
               <Text style={styles.infoText}>Name: {childsName}</Text>
               <Text style={styles.infoText}>Gender: {gender}</Text>
               <Text style={styles.infoText}>Date of Birth: {dob}</Text>
             </View>
-          <View style={styles.chart}>
-            <Text style={styles.chartTitle}>Weight Chart</Text>
-            <ScrollView horizontal={true}>
-              <VictoryChart padding={{ top: 20, bottom: 50, left: 70, right: 40 }} domainPadding={{ x: 30 }} width={weights.length * 80}>
-                <VictoryBar
-                  data={weights.map((value, index) => ({ x: index + 1, y: value }))}
-                  style={{ data: { fill: '#3eb489' } }}
-                  labels={({ datum }) => `${datum.y} kg`}
-                />
-                <VictoryAxis 
-                  label = "Visits"
-                  style={{
-                    axisLabel: { padding: 30 },
-                  }}
-                  tickFormat={(value) => `Visit${value}`}
-                />
-                <VictoryAxis
-                  label="Weight (in kg)"
-                  style={{
-                    axisLabel: { padding: 40, y: -20 },
-                  }}
-                  dependentAxis
-                  domain={{ y: [Math.min(...weights) - 5, Math.max(...weights) + 5] }}
-                />
-              </VictoryChart>
-            </ScrollView>
-          </View>
-
-          <View style={styles.table}>
-            <Text style={styles.tableTitle}>Summary Table</Text>
-            <View style={styles.tableContainer}>
-              <View style={styles.tableHeader}>
-                <Text style={styles.tableHeaderText}>Visit Date</Text>
-                <Text style={styles.tableHeaderText}>Weight</Text>
-              </View>
-              {tableData.map((item, index) => (
-                <View style={styles.tableRow} key={index}>
-                  <Text style={styles.tableCell}>{item.visit}</Text>
-                  <Text style={styles.tableCell}>{item.weight}</Text>
-                </View>
-              ))}
+            <View style={styles.chart}>
+              <Text style={styles.chartTitle}>Weight Chart</Text>
+              <ScrollView horizontal={true}>
+                <ViewShot ref={chartRef} options={{ format: 'png', quality: 0.8 }}>
+                  <VictoryChart padding={{ top: 20, bottom: 50, left: 70, right: 40 }} domainPadding={{ x: 30 }} width={weights.length * 80}>
+                    <VictoryBar
+                      data={weights.map((value, index) => ({ x: index + 1, y: value }))}
+                      style={{ data: { fill: '#3eb489' } }}
+                      labels={({ datum }) => `${datum.y} kg`}
+                    />
+                    <VictoryAxis
+                      label="Visits"
+                      style={{
+                        axisLabel: { padding: 30 },
+                      }}
+                      tickFormat={(value) => `Visit${value}`}
+                    />
+                    <VictoryAxis
+                      label="Weight (in kg)"
+                      style={{
+                        axisLabel: { padding: 40, y: -20 },
+                      }}
+                      dependentAxis
+                      domain={{ y: [Math.min(...weights) - 5, Math.max(...weights) + 5] }}
+                    />
+                  </VictoryChart>
+                </ViewShot>
+              </ScrollView>
             </View>
+
+            <View style={styles.table}>
+              <Text style={styles.tableTitle}>Summary Table</Text>
+              <View style={styles.tableContainer}>
+                <View style={styles.tableHeader}>
+                  <Text style={styles.tableHeaderText}>Visit Date</Text>
+                  <Text style={styles.tableHeaderText}>Weight</Text>
+                </View>
+                {tableData.map((item, index) => (
+                  <View style={styles.tableRow} key={index}>
+                    <Text style={styles.tableCell}>{item.visit}</Text>
+                    <Text style={styles.tableCell}>{item.weight}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <TouchableOpacity
+        style={{
+          ...styles.printButton,
+          position: 'absolute',
+          top: -10,
+          right: -20,
+          flexDirection: 'column',
+          alignItems: 'center',
+          marginBottom:90,
+        }}
+        onPress={generatePDF}
+      >
+        <Image
+          source={require('../assets/printer1.png')}
+          style={{
+            width: 35,
+            height: 35,
+            borderRadius: 10,
+            backgroundColor: '#f4f4f4',
+            marginEnd:40,
+            marginBottom:40
+          }}
+        />
+        <Text style={{ color: 'black', fontSize: 14, marginTop: -40 ,marginEnd:45}}> PDF</Text>
+      </TouchableOpacity>
           </View>
-        </View>
-      )}
-</ScrollView>
+        )}
+      </ScrollView>
     </ScrollView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -223,6 +363,18 @@ childInfo: {
       scrollView: {
         flex: 1,
         width: '100%',
+      },
+      pdfButton: {
+        marginTop: 20,
+        backgroundColor: '#007BFF',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+      },
+      pdfButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
       },
 });
 
