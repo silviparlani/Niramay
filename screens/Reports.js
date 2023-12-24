@@ -9,9 +9,19 @@ const options = [
   { key: 'option4', label: 'Grade Per Visit', image: require('../assets/grade.png') },
   { key: 'option5', label: 'BMI Per Visit', image: require('../assets/bmi.png') },
   { key: 'option6', label: 'Overall Growth Per Visit', image: require('../assets/Overall.png') },
-
-
 ];
+const CustomMenuButton = ({toggleMenu}) => {
+  const handleMenuToggle = () => {
+    toggleMenu(); // Call the toggleMenu function received as a prop
+  };
+
+  return (
+    <TouchableOpacity style={styles.menuButton} onPress={handleMenuToggle}>
+      <Image source={require('../assets/menu.png')} style={styles.menuIcon} />
+    </TouchableOpacity>
+    
+  );
+};
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const day = date.getDate().toString().padStart(2, '0');
@@ -19,9 +29,15 @@ const formatDate = (dateString) => {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
-const Reports = ({ navigation, route }) => {
+const Reports = ({ navigation, route,toggleMenu}) => {
   const { anganwadiNo, childsName } = route.params;
   const [formData, setFormData] = useState(null);
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => <CustomMenuButton toggleMenu={toggleMenu} />, // Place the menu button in the header
+      // You can add other header configurations here as needed
+    });
+  }, [navigation]);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -130,6 +146,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+  },
+  menuButton: {
+    position: 'absolute',
+    bottom: -20,
+    right: 1,
+    zIndex: 1,
+    // Add any additional styles you need for positioning and appearance
+  },
+  menuIcon: {
+    width: 28,
+    height: 30,
+    // Add styles for your icon if needed
   },
 });
 

@@ -254,6 +254,7 @@ const GeneralHistoryForm = () => {
       visits: [...prevHistory.visits, newVisit],
     }));
   };
+  
 
   const route = useRoute();
   const { anganwadiNo, childsName } = route.params;
@@ -263,8 +264,8 @@ const GeneralHistoryForm = () => {
 
     try {
       const generalHistoryData = {
-        anganwadi_no: anganwadiNo,
-        child_name: childsName,
+        anganwadiNo: anganwadiNo,
+        childName: childsName,
         vomiting: generalHistory.vomiting, // Accessing values from generalHistory state
         fever: generalHistory.fever,
         commonCold: generalHistory.commonCold,
@@ -326,11 +327,12 @@ const GeneralHistoryForm = () => {
     console.log('Child name: ', childsName);
     try {
       for (const visit of generalHistory.visits) {
-
+        const [day, month, year] = visit.date.split('-');
+        const formattedDate = `${year}-${month}-${day}`;
         const visitData = {
           anganwadiNo: anganwadiNo,
           childName: childsName,
-          visitDate: visit.date,
+          visitDate: formattedDate,
           haemoglobin: visit.haemoglobin,
           totalNoOfJars: visit.totalNoOfJars,
           muac: visit.muac,
@@ -375,6 +377,8 @@ const GeneralHistoryForm = () => {
   };
 
   const handleVisitFieldChange = (index, field, value) => {
+    // Assuming the date field is 'visit.date'
+   
     const newVisits = [...generalHistory.visits];
     newVisits[index][field] = value;
     setGeneralHistory((prevHistory) => ({
@@ -382,6 +386,7 @@ const GeneralHistoryForm = () => {
       visits: newVisits,
     }));
   };
+  
 
   const handleToggle = (field) => {
     setGeneralHistory((prevHistory) => ({

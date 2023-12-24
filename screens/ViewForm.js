@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text,TextInput, ActivityIndicator, StyleSheet, ScrollView,TouchableOpacity,Switch} from 'react-native';
+import { View, Text,TextInput, ActivityIndicator, StyleSheet, ScrollView,TouchableOpacity,Switch,Image} from 'react-native';
 // import NetInfo from '@react-native-community/netinfo';
 import { API_URL } from './config.js';
 import { black } from 'react-native-paper/lib/typescript/styles/themes/v2/colors.js';
 import { color } from 'react-native-elements/dist/helpers/index.js';
+import RNHTMLtoPDF from 'react-native-html-to-pdf'; 
 import COLORS from '../constants/colors.js';
+import RNPrint from 'react-native-print';
+
 const ViewForm = ({ route }) => {
   const { anganwadiNo, childsName } = route.params;
   const [formData, setFormData] = useState(null);
@@ -232,6 +235,179 @@ const [newTotalFamilyMembers, setNewTotalFamilyMembers] = useState(0); // Initia
 
     setIsEditingPhoneNumber(false);
   };
+
+
+
+
+  const generatePDFContent = () => {
+    let htmlContent = `
+      <html>
+
+      <head>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: ${styles.container.backgroundColor};
+          color: ${styles.text.color};
+          padding: ${styles.container.padding}px;
+        }
+        .headerContainer {
+          display: flex;
+          align-items: left;
+          
+          border-bottom: 1px solid orange; /* Thin line below the heading */
+          padding-bottom: 15px; /* Adjust as needed */
+        }
+        h1 {
+          font-size: ${styles.subSectionTitle.fontSize + 5}px;
+          font-weight: ${styles.subSectionTitle.fontWeight};
+          color: ${styles.subSectionTitle.color};
+          margin-top: 15px;
+          text-align: center; /* Add this line to center the heading */
+        }
+        h2 {
+          font-size: ${styles.subSectionTitle.fontSize}px;
+          font-weight: ${styles.subSectionTitle.fontWeight};
+          color: ${styles.subSectionTitle.color};
+          background-color: ${styles.subSectionTitle.backgroundColor};
+          border-radius: ${styles.subSectionTitle.borderRadius}px;
+          margin-bottom: ${styles.subSectionTitle.marginBottom}px;
+        }
+        p, label {
+          font-size: ${styles.text.fontSize}px;
+          font-weight: ${styles.subSectionTitle.fontWeight};
+          margin-bottom: ${styles.text.marginBottom}px;
+          color: ${styles.text.color};
+        }
+        .container {
+          background-color: ${styles.formDataContainer.backgroundColor};
+          padding: ${styles.formDataContainer.padding}px;
+          border-radius: ${styles.formDataContainer.borderRadius}px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+          margin-bottom: ${styles.formDataContainer.marginBottom}px;
+        }
+        .fieldContainer {
+          margin-bottom: ${styles.fieldContainer.marginBottom}px;
+        }
+        img {
+         width:100px; 
+         height:100px;
+         
+         }
+         .headingLine {
+          font-size:30;
+          color:orange;
+          margin-left:20px;
+         margin-top:20px;
+         padding-bottom:3px;
+       
+        }
+        .subheading {
+          font-size: 18px;
+          color: orange;
+       
+          margin-left:20px;
+        }
+        .textContainer {
+          margin-left: 10px;
+        }
+        /* Add more styles as needed */
+      </style>
+    </head>
+      </head>
+        <body>
+        <div class="headerContainer">
+       
+        <img src="file:///android_asset/images/logo2.jpg" />
+<div class="textContainer">
+<div class="headingLine">Niramay Bharat</div>
+<div class="subheading">सर्वे पि सुखिनः सन्तु | सर्वे सन्तु निरामय: ||</div>
+</div>
+</div>
+
+          <h1>Anganwadi Form Data</h1>
+          
+          <h2>Bit Information</h2>
+          <p>Bit Name: ${formData.bit_name}</p>
+          <p>Anganwadi No: ${formData.anganwadi_no}</p>
+  
+          <h2>Anganwadi Assistant Information</h2>
+          <p>Assistant Name: ${formData.assistant_name}</p>
+          <p>Assistant Phone Number: ${formData.assistant_phone}</p>
+  
+          <h2>Child Information</h2>
+          <p>Child's Name: ${formData.child_name}</p>
+          <p>Child's Date of Birth: ${formData.child_dob ? new Date(formData.child_dob).toLocaleDateString('en-US') : 'N/A'}</p>
+          <p>Child's Gender: ${formData.child_gender}</p>
+          <p>Child's Phone Number: ${formData.child_phone}</p>
+  
+          <h2>Parent Information</h2>
+          <p>Mother's Name: ${formData.mother_name}</p>
+          <p>Mother's Education: ${formData.mother_education}</p>
+          <p>Mother's Occupation: ${formData.mother_occupation}</p>
+          <p>Mother's Age at Marriage: ${formData.mother_age_at_marriage}</p>
+          <p>Mother's Age during First Pregnancy: ${formData.mother_age_at_first_pregnancy}</p>
+          <p>Child's Weight after Birth: ${formData.child_weight_after_birth}</p>
+          <p>Father's Name: ${formData.father_name}</p>
+          <p>Father's Occupation: ${formData.father_occupation}</p>
+          <p>Father's Education: ${formData.father_education}</p>
+  
+          <h2>Sibling Information</h2>
+          <div style="margin-bottom: 10px;">
+      `;
+    
+      for (const sibling of siblings) {
+        htmlContent += `
+          <div style="margin-bottom: 10px;">
+            <p>Sibling Name: ${sibling.name}</p>
+            <p>Sibling Age: ${sibling.age}</p>
+            <p>Malnourished: ${sibling.malnourished ? 'Yes' : 'No'}</p>
+          </div>
+        `;
+      }
+    
+      htmlContent += `
+    <!-- Add Information of Family -->
+    <h2>Information of Family</h2>
+    <p>No. of Total Family Members: ${formData.total_family_members}</p>
+    <p>Total Number of Siblings: ${formData.TotalSiblings}</p>
+
+    <!-- Additional Fields -->
+    <h2>Additional Information</h2>
+    <p>Disease History: ${formData.disease_history || 'N/A'}</p>
+    <p>Addiction: ${formData.addiction || 'N/A'}</p>
+    <p>Source of Drinking Water: ${formData.source_of_drinking_water || 'N/A'}</p>
+
+    <!-- Add more data fields here -->
+`;
+
+    
+      return htmlContent;
+    };
+
+  const generatePDF = async () => {
+    try {
+      console.log('Generating PDF...');
+      const options = {
+        html: generatePDFContent(),
+        fileName: 'FormDataPDF',
+        directory: 'Documents',
+      };
+      const pdf = await RNHTMLtoPDF.convert(options);
+      console.log('PDF generated:', pdf.filePath);
+  
+      // Print the PDF
+      await RNPrint.print({
+        filePath: pdf.filePath,
+      });
+    } catch (error) {
+      console.error('Error generating or printing PDF:', error);
+    }
+  };
+  
+
+
+
   return (
     <ScrollView style={styles.container}>
       {loading ? (
@@ -481,6 +657,34 @@ const [newTotalFamilyMembers, setNewTotalFamilyMembers] = useState(0); // Initia
       ) : (
         <Text style={styles.errorText}>Data not found</Text>
       )}
+
+
+      <TouchableOpacity
+        style={{
+          ...styles.printButton,
+          position: 'absolute',
+          top: 20,
+          right: -30,
+          flexDirection: 'column',
+          alignItems: 'center',
+          marginBottom:90,
+        }}
+        onPress={generatePDF}
+      >
+        <Image
+          source={require('../assets/printer1.png')}
+          style={{
+            width: 35,
+            height: 35,
+            borderRadius: 10,
+            backgroundColor: '#f4f4f4',
+            marginEnd:30,
+            marginBottom:40
+          }}
+        />
+        <Text style={{ color: 'black', fontSize: 14, marginTop: -40 ,marginEnd:35}}> PDF</Text>
+      </TouchableOpacity>
+
     </ScrollView>
   );
 };

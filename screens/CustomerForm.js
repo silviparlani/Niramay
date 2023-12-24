@@ -4,6 +4,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimens
 import Collapsible from 'react-native-collapsible';
 import { API_URL } from './config.js';
 import { useNavigation } from '@react-navigation/native';
+import { RadioButton } from 'react-native-paper';
 //import checkmarkImage from '../assets/check-mark.png';
 
 const CustomerForm = ({ toggleMenu }) => {
@@ -32,7 +33,7 @@ const CustomerForm = ({ toggleMenu }) => {
   const [showAssistantSection, setShowAssistantSection] = useState(false);
   const [showChildSection, setShowChildSection] = useState(false);
   const [total_siblings, setTotalSiblings] = useState(0);
- const [chief_assistantName,setChiefAssistantname]=useState('');
+  const [chief_assistantName, setChiefAssistantname] = useState('');
 
   const [showFamilySection, setShowFamilySection] = useState(false);
   const [totalFamilyMembers, setTotalFamilyMembers] = useState('');
@@ -45,7 +46,11 @@ const CustomerForm = ({ toggleMenu }) => {
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const checkmarkImage = require('../assets/check-mark.png');
- 
+
+  const motherOccupationOptions = ['Housewife', 'Daily Wage Worker', 'Domestic Help', 'Nurse', 'Ragpicker', 'Other'];
+  const fatherOccupationOptions = ['Daily Wage Worker', 'Ragpicker', 'Security', 'Painter', 'Driver Mama', 'Engineer', 'Other'];
+
+
   const handleAddSibling = () => {
 
     if (siblings.length >= total_siblings) {
@@ -106,7 +111,7 @@ const CustomerForm = ({ toggleMenu }) => {
     childGender: '',
     childHb: '',
     childPhone: '',
-    chief_assistantName:'',
+    chief_assistantName: '',
   });
   const handleForSubmit = async () => {
 
@@ -119,14 +124,14 @@ const CustomerForm = ({ toggleMenu }) => {
     const selectedDiseases = Object.keys(diseaseHistory).filter(
       (key) => diseaseHistory[key] === true
     );
-   
+
     const formattedChildDob = parseDateToServerFormat(childDob);
     try {
       console.log(
         selectedDiseases);
       const formData = {
         bit_name: bitName,
-        chief_assistantName:chief_assistantName,
+        chief_assistantName: chief_assistantName,
         anganwadi_no: anganwadiNo,
         assistant_name: assistantName,
         assistant_phone: assistantPhone,
@@ -170,7 +175,7 @@ const CustomerForm = ({ toggleMenu }) => {
       console.error('Error submitting form:', error);
     }
   };
- 
+
   const submitSiblingData = () => {
     const requestBody = JSON.stringify({
       anganwadi_no: anganwadiNo,
@@ -379,7 +384,7 @@ const CustomerForm = ({ toggleMenu }) => {
                     placeholderTextColor="grey"
                   />
                   <Text style={styles.errorText}>{errors.bitName}</Text>
-                 
+
                   <Text style={styles.label}>Chief Assistant Name /मुख्य सहाय्यकचे नाव : <Text style={{ color: 'red', fontSize: 16 }}>*</Text> </Text>
                   <TextInput
                     style={[styles.input, { height: 45, color: 'black' }]}
@@ -504,7 +509,7 @@ const CustomerForm = ({ toggleMenu }) => {
                       <View style={[styles.radioButtonIcon, { backgroundColor: childGender === 'female' ? 'teal' : 'transparent' }]} />
                       <Text style={styles.radioButtonLabel}>Female</Text>
                     </TouchableOpacity>
-                   
+
                   </View>
 
 
@@ -562,15 +567,22 @@ const CustomerForm = ({ toggleMenu }) => {
                   />
                   <Text style={styles.errorText}>{errors.motherEducation}</Text>
 
-                  <Text style={styles.label}>Mother's Occupation / आईचे व्यवसाय :</Text>
-                  <TextInput
-                    style={[styles.input, { height: 45, color: 'black' }]}
-                    value={motherOccupation}
-                    onChangeText={setMotherOccupation}
-                    placeholderTextColor="grey"
-                    placeholder="Enter mother's occupation"
-                  />
+                  <Text style={styles.label}>Mother's Occupation / आईचे व्यवसाय:</Text>
+                  <View style={styles.radioContainer}>
+                    {motherOccupationOptions.map((option, index) => (
+                      <View key={index} style={styles.radioButton}>
+                        <RadioButton.Android
+                          value={option}
+                          status={motherOccupation === option ? 'checked' : 'unchecked'}
+                          onPress={() => setMotherOccupation(option)}
+                          color="teal"
+                        />
+                        <Text style={styles.radioButtonLabel}>{option}</Text>
+                      </View>
+                    ))}
+                  </View>
                   <Text style={styles.errorText}>{errors.motherOccupation}</Text>
+
 
                   <Text style={styles.label}>Mother's Age at Marriage / लग्नाच्या वेळी आईचे वय : </Text>
                   <TextInput
@@ -630,13 +642,19 @@ const CustomerForm = ({ toggleMenu }) => {
                   <Text style={styles.errorText}>{errors.fatherEducation}</Text>
 
                   <Text style={styles.label}>Father's Occupation / वडिलांचे व्यवसाय:</Text>
-                  <TextInput
-                    style={[styles.input, { height: 45, color: 'black' }]}
-                    value={fatherOccupation}
-                    onChangeText={setFatherOccupation}
-                    placeholder="Enter father's occupation"
-                    placeholderTextColor="grey"
-                  />
+                  <View style={styles.radioContainer}>
+                    {fatherOccupationOptions.map((option, index) => (
+                      <View key={index} style={styles.radioButton}>
+                        <RadioButton.Android
+                          value={option}
+                          status={fatherOccupation === option ? 'checked' : 'unchecked'}
+                          onPress={() => setFatherOccupation(option)}
+                          color="teal"
+                        />
+                        <Text style={styles.radioButtonLabel}>{option}</Text>
+                      </View>
+                    ))}
+                  </View>
                   <Text style={styles.errorText}>{errors.fatherOccupation}</Text>
                 </View>
               </Collapsible>
@@ -1057,7 +1075,7 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     fontSize: 16,
     marginTop: 8,
-    color:'grey'
+    color: 'grey'
   },
   label: {
     fontSize: 18,

@@ -125,7 +125,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const colors = ['#FF5733', '#FFC300', '#33FF57'];
+const colors = {
+  NORMAL: '#33FF57', // Green color for NORMAL grade
+  MAM: '#FFC300',    // Orange color for MAM grade
+  SAM: '#FF5733',    // Red color for SAM grade
+};
 
 const GradeDistribution = () => {
   const [bitName, setBitName] = useState([]);
@@ -187,12 +191,17 @@ const GradeDistribution = () => {
         });
     }
   }, [selectedDate, selectedBitName]);
+// ... (Previous code remains unchanged)
 
-  const pieChartData = data.map((item, index) => ({
-    name: item.grade,
-    count: item.count,
-    color: colors[index % colors.length],
-  }));
+
+
+const pieChartData = data.map((item, index) => ({
+  name: item.grade,
+  count: item.count,
+  color: colors[item.grade], // Assign color based on the grade
+}));
+
+
   
   
 

@@ -123,10 +123,13 @@ const GeneralHistoryDisplay = ({ route }) => {
 
     const handleSaveVisit = async () => {
         try {
+            const [day, month, year] = newVisit.date.split('-');
+        const formattedDate = `${year}-${month}-${day}`;
             const requestData = {
+                
                 anganwadiNo,
                 childName: childsName,
-                visitDate: newVisit.date,
+                visitDate: formattedDate,
                 totalNoOfJars: newVisit.totalNoOfJars,
                 haemoglobin: newVisit.haemoglobin,
                 muac: newVisit.muac,

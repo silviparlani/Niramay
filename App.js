@@ -228,7 +228,7 @@ export default function App() {
 
           <Stack.Screen
             name="BitNamevsGender"
-            component={BitNamevsGender}
+   
             options={{
               // headerShown: false,
               headerStyle: {
@@ -238,7 +238,11 @@ export default function App() {
               headerTintColor: COLORS.white,
               title: "Report",
             }}
-          />
+            >
+  {(props) => (
+    <BitNamevsGender {...props} toggleMenu={toggleMenu} />
+  )}
+</Stack.Screen>
           <Stack.Screen
             name="GradeDistribution"
             component={GradeDistribution}
@@ -268,7 +272,7 @@ export default function App() {
 
           <Stack.Screen
             name="Reports"
-            component={Reports}
+            
             options={{
               // headerShown: false,
               headerStyle: {
@@ -278,8 +282,11 @@ export default function App() {
               headerTintColor: COLORS.white,
               title: "Report",
             }}
-          />
-
+            >
+  {(props) => (
+    <Reports {...props} toggleMenu={toggleMenu} />
+  )}
+</Stack.Screen>
           <Stack.Screen
             name="HeightPerChild"
             component={HeightPerChild}
@@ -340,7 +347,7 @@ export default function App() {
 
           <Stack.Screen
             name="BitNamevsGenderGraph"
-            component={BitNamevsGenderGraph}
+           
             options={{
               // headerShown: false,
               headerStyle: {
@@ -350,7 +357,11 @@ export default function App() {
               headerTintColor: COLORS.white,
               title: "Report",
             }}
-          />
+            >
+  {(props) => (
+    <BitNamevsGenderGraph {...props} toggleMenu={toggleMenu} />
+  )}
+</Stack.Screen>
 
 <Stack.Screen
             name="GrowthChartPerChild"
@@ -382,7 +393,7 @@ export default function App() {
 
           <Stack.Screen
             name="AnganwadiCountPerBit"
-            component={AnganwadiCountPerBit}
+        
             options={{
               // headerShown: false,
               headerStyle: {
@@ -392,7 +403,11 @@ export default function App() {
               headerTintColor: COLORS.white,
               title: "Report",
             }}
-          />
+            >
+  {(props) => (
+    <AnganwadiCountPerBit {...props} toggleMenu={toggleMenu} />
+  )}
+</Stack.Screen>
 
 
 <Stack.Screen
