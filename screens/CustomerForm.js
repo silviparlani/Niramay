@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions, StatusBar, ImageBackground, Switch, Image, Alert } from 'react-native';
-//import Icon from 'react-native-vector-icons/Ionicons';
 import Collapsible from 'react-native-collapsible';
 import { API_URL } from './config.js';
-import { useNavigation } from '@react-navigation/native';
 import { RadioButton } from 'react-native-paper';
-//import checkmarkImage from '../assets/check-mark.png';
+import CheckBox from 'react-native-check-box';
+//import ModalDropdown from 'react-native-modal-dropdown';
+import React, { useState } from 'react';
+import RNPickerSelect from 'react-native-picker-select';
 
-const CustomerForm = ({ toggleMenu }) => {
+
+const CustomerForm = () => {
   const [bitName, setBitName] = useState('');
   const [anganwadiNo, setAnganwadiNo] = useState('');
   const [assistantName, setAssistantName] = useState('');
@@ -15,7 +16,6 @@ const CustomerForm = ({ toggleMenu }) => {
   const [childName, setChildName] = useState('');
   const [childDob, setChildDob] = useState('');
   const [childGender, setChildGender] = useState('');
-  const navigation = useNavigation();
   const [childPhone, setChildPhone] = useState('');
   const [motherName, setMotherName] = useState('');
   const [motherEducation, setMotherEducation] = useState('');
@@ -27,29 +27,93 @@ const CustomerForm = ({ toggleMenu }) => {
   const [fatherEducation, setFatherEducation] = useState('');
   const [fatherOccupation, setFatherOccupation] = useState('');
   const [showParentSection, setShowParentSection] = useState(false);
-  const [showMotherSection, setShowMotherSection] = useState(false);
-  const [showFatherSection, setShowFatherSection] = useState(false);
   const [showBitSection, setShowBitSection] = useState(false);
   const [showAssistantSection, setShowAssistantSection] = useState(false);
   const [showChildSection, setShowChildSection] = useState(false);
   const [total_siblings, setTotalSiblings] = useState(0);
   const [chief_assistantName, setChiefAssistantname] = useState('');
-
   const [showFamilySection, setShowFamilySection] = useState(false);
   const [totalFamilyMembers, setTotalFamilyMembers] = useState('');
   const [siblings, setSiblings] = useState([]);
-
-
   const [addictions, setAddictions] = useState('');
   const [sourceOfDrinkingWater, setSourceOfDrinkingWater] = useState('');
   const [other, setOther] = useState('');
-
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const checkmarkImage = require('../assets/check-mark.png');
-
   const motherOccupationOptions = ['Housewife', 'Daily Wage Worker', 'Domestic Help', 'Nurse', 'Ragpicker', 'Other'];
   const fatherOccupationOptions = ['Daily Wage Worker', 'Ragpicker', 'Security', 'Painter', 'Driver Mama', 'Engineer', 'Other'];
+  const [selectedDisease, setSelectedDisease] = useState(null);
+  const [diseaseHistory, setDiseaseHistory] = useState({
+    diabetes: { checked: false, selectedOptions: [] },
+    tuberculosis: { checked: false, selectedOptions: [] },
+    anaemia: { checked: false, selectedOptions: [] },
+  });
 
+  const options = [
+    { label: 'Mother/आई', value: 'Mother/आई' },
+    { label: 'Father/वडिल', value: 'Father/वडिल' },
+    { label: 'Maternal Grandmother/आजी', value: 'Maternal Grandmother/आजी' },
+    { label: 'Maternal Grandfather/आजोबा', value: 'Maternal Grandfather/आजोबा' },
+    { label: 'Paternal Grandmother/पाटी', value: 'Paternal Grandmother/पाटी' },
+    { label: 'Paternal Grandfather/पाट्या', value: 'Paternal Grandfather/पाट्या' },
+  ];
+
+  const handleDiseaseCheckboxChange = (diseaseKey) => {
+    setDiseaseHistory((prevHistory) => {
+      const updatedDisease = {
+        ...prevHistory[diseaseKey],
+        checked: !prevHistory[diseaseKey].checked,
+        selectedOptions: [], // Reset selected options when the checkbox is unchecked
+      };
+
+      const updatedHistory = {
+        ...prevHistory,
+        [diseaseKey]: updatedDisease,
+      };
+
+      return updatedHistory;
+    });
+  };
+
+  const handleOptionCheckboxChange = (diseaseKey, optionValue) => {
+    setDiseaseHistory((prevHistory) => {
+      const updatedDisease = {
+        ...prevHistory[diseaseKey],
+        selectedOptions: prevHistory[diseaseKey].selectedOptions.includes(optionValue)
+          ? prevHistory[diseaseKey].selectedOptions.filter((value) => value !== optionValue)
+          : [...prevHistory[diseaseKey].selectedOptions, optionValue],
+      };
+
+      const updatedHistory = {
+        ...prevHistory,
+        [diseaseKey]: updatedDisease,
+      };
+
+      return updatedHistory;
+    });
+  };
+
+  const renderOptions = (diseaseName) => {
+    const disease = diseaseHistory[diseaseName];
+    if (disease.checked) {
+      return (
+        <View style={styles.optionsContainer}>
+          {options.map((option) => (
+            <CheckBox
+              key={option.value}
+              checkBoxColor="teal"
+              style={styles.checkboxContainer}
+              onClick={() => handleOptionCheckboxChange(diseaseName, option.value)}
+              isChecked={disease.selectedOptions.includes(option.value)}
+              rightText={option.label}
+              rightTextStyle={styles.checkboxLabel}
+            />
+          ))}
+        </View>
+      );
+    }
+
+    return null;
+  };
 
   const handleAddSibling = () => {
 
@@ -72,29 +136,6 @@ const CustomerForm = ({ toggleMenu }) => {
     updatedSiblings[index][field] = value;
     setSiblings(updatedSiblings);
   };
-  const [diseaseHistory, setDiseaseHistory] = useState({
-    diabetes: false,
-    tuberculosis: false,
-    anaemia: false,
-  });
-
-  const handleDiseaseCheckboxChange = (disease) => {
-    setDiseaseHistory((prev_history) => ({
-      ...prev_history,
-      [disease]: !prev_history[disease],
-    }));
-  };
-
-  const Checkbox = ({ label, checked, onChange }) => (
-    <View style={styles.checkboxContainer}>
-      <TouchableOpacity onPress={onChange}>
-        <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-          {checked && <Image source={checkmarkImage} style={styles.checkicon} />}
-        </View>
-      </TouchableOpacity>
-      <Text style={styles.checkboxLabel}>{label}</Text>
-    </View>
-  );
 
   const parseDateToServerFormat = (dateString) => {
     const [day, month, year] = dateString.split('-');
@@ -121,14 +162,9 @@ const CustomerForm = ({ toggleMenu }) => {
     setTimeout(() => {
       setShowSuccessMessage(false);
     }, 3000); // Adjust the duration as needed
-    const selectedDiseases = Object.keys(diseaseHistory).filter(
-      (key) => diseaseHistory[key] === true
-    );
 
     const formattedChildDob = parseDateToServerFormat(childDob);
     try {
-      console.log(
-        selectedDiseases);
       const formData = {
         bit_name: bitName,
         chief_assistantName: chief_assistantName,
@@ -149,13 +185,16 @@ const CustomerForm = ({ toggleMenu }) => {
         father_occupation: fatherOccupation,
         father_education: fatherEducation,
         total_family_members: totalFamilyMembers,
-        prevHistory: selectedDiseases,
         addictions,
         source_of_drinking_water: sourceOfDrinkingWater,
         other,
-        TotalSiblings: total_siblings
-      };
+        TotalSiblings: total_siblings,
+        diabetes: diseaseHistory.diabetes.checked ? diseaseHistory.diabetes.selectedOptions : null,
+        tuberculosis: diseaseHistory.tuberculosis.checked ? diseaseHistory.tuberculosis.selectedOptions : null,
+        anaemia: diseaseHistory.anaemia.checked ? diseaseHistory.anaemia.selectedOptions : null,
 
+      };
+      console.log("FORM DATA:", formData);
       const response = await fetch(`${API_URL}/submitForm`, {
         method: 'POST',
         headers: {
@@ -167,7 +206,6 @@ const CustomerForm = ({ toggleMenu }) => {
       if (response.status === 200) {
         console.log('Form submitted successfully');
         submitSiblingData();
-        // Add any additional logic or navigation here after successful submission
       } else {
         console.error('Error submitting form');
       }
@@ -183,7 +221,6 @@ const CustomerForm = ({ toggleMenu }) => {
       siblings: siblings,
     });
     console.log(siblings);
-    // Set up the fetch options
     const requestOptions = {
       method: 'POST',
       headers: {
@@ -192,7 +229,6 @@ const CustomerForm = ({ toggleMenu }) => {
       body: requestBody,
     };
 
-    // Send the sibling data to the server using fetch
     fetch(`${API_URL}/submit-sibling-data`, requestOptions)
       .then((response) => {
         if (!response.ok) {
@@ -202,15 +238,11 @@ const CustomerForm = ({ toggleMenu }) => {
       })
       .then((data) => {
         console.log('Sibling data submitted successfully:', data);
-        // You can add further actions here, such as navigation or displaying a success message.
       })
       .catch((error) => {
         console.error('Error submitting sibling data:', error);
-        // Handle error, e.g., display an error message to the user.
       });
   };
-
-
 
   const handleSubmit = async () => {
     handleForSubmit();
@@ -235,57 +267,43 @@ const CustomerForm = ({ toggleMenu }) => {
       newErrors.assistantName = 'Please enter Name';
       hasErrors = true;
     }
-
     if (assistantPhone === '') {
       newErrors.assistantPhone = 'Please enter Phone Number';
       hasErrors = true;
     }
-
     if (childName === '') {
       newErrors.childName = 'Please enter Name';
       hasErrors = true;
     }
-
     if (childDob === '') {
       newErrors.childDob = 'Please select Date of Birth';
       hasErrors = true;
     }
-
     if (childGender === '') {
       newErrors.childGender = 'Please enter Gender';
       hasErrors = true;
     }
-
-
     if (childPhone === '') {
       newErrors.childPhone = 'Please enter Phone Number';
       hasErrors = true;
     }
-    // Inside the handleSubmit function, add validation for new fields
     if (motherName === '') {
       newErrors.motherName = "Please enter Mother's Name";
       hasErrors = true;
     }
-
-
-
     if (motherAgeAtFirstPregnancy === '') {
       newErrors.motherAgeAtFirstPregnancy = "Please enter Mother's Age at First Pregnancy";
       hasErrors = true;
 
     }
-
     if (childWeightAfterBirth === '') {
       newErrors.childWeightAfterBirth = "Please enter Child's Weight After Birth";
       hasErrors = true;
     }
-
     if (fatherName === '') {
       newErrors.fatherName = "Please enter Father's Name";
       hasErrors = true;
     }
-
-
     if (childWeightAfterBirth === '') {
       newErrors.childWeightAfterBirth = "Please enter Child's Weight After Birth";
       hasErrors = true;
@@ -294,52 +312,7 @@ const CustomerForm = ({ toggleMenu }) => {
       hasErrors = true;
     }
 
-
     setErrors(newErrors);
-
-    // if (!hasErrors) {
-    //   // Proceed with form submission
-    //   console.log('Form submitted successfully');
-    //   // ... (rest of the submission logic)
-    // }
-
-    if (!hasErrors) {
-      // Check if anganwadi_no and child_name already exist
-      const response = await checkDuplicateEntries(anganwadiNo, childName);
-
-      if (response.error) {
-        // Display error message for duplicate entries
-        setErrors({
-          ...newErrors,
-          anganwadiNo: 'Anganwadi No. and Child Name combination already exists',
-          childName: 'Anganwadi No. and Child Name combination already exists',
-        });
-        // Show popup
-        Alert.alert('Error', 'Child already exists. Check anganwadi number or child name and try again.');
-      } else {
-        // Proceed with form submission
-        console.log('Form submitted successfully');
-        // ... (rest of the submission logic)
-      }
-    }
-  };
-  // Function to check duplicate entries on the server
-  const checkDuplicateEntries = async (anganwadiNo, childName) => {
-    try {
-      const response = await fetch(`${API_URL}/check-duplicates`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ anganwadiNo, childName }),
-      });
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error('Error checking duplicates:', error);
-      return { error: true };
-    }
   };
   return (
     <View style={styles.outerContainer}>
@@ -350,14 +323,10 @@ const CustomerForm = ({ toggleMenu }) => {
           contentContainerStyle={styles.formContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* <View style={styles.toolbar}>
-            <Text style={styles.toolbarTitle}>Personal Information</Text>
-          </View> */}
           <View style={styles.dropdownContainer}>
             <View style={styles.formContainer}>
               {/* Bit Information Section */}
               <TouchableOpacity
-                // style={styles.sectionHeader}
                 style={[styles.sectionHeader, { height: 85 }, styles.shadow]}
                 onPress={() => setShowBitSection(!showBitSection)}
               >
@@ -369,7 +338,6 @@ const CustomerForm = ({ toggleMenu }) => {
                   ) : (
                     <Image source={require('../assets/down.png')} style={styles.icon} />
                   )}
-
                 </View>
               </TouchableOpacity>
               <Collapsible collapsed={!showBitSection}>
@@ -511,7 +479,6 @@ const CustomerForm = ({ toggleMenu }) => {
                     </TouchableOpacity>
 
                   </View>
-
 
                   <Text style={styles.errorText}>{errors.childHb}</Text>
                   <Text style={styles.label}>Phone Number / फोन नंबर :  <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
@@ -685,7 +652,6 @@ const CustomerForm = ({ toggleMenu }) => {
                     keyboardType="numeric"
                   />
 
-
                   <Text></Text>
                   <Text style={styles.label}>Total Number of Siblings / भावंडांची एकूण संख्या : <Text style={{ color: 'red', fontSize: 16 }}>*</Text></Text>
                   <TextInput
@@ -696,7 +662,6 @@ const CustomerForm = ({ toggleMenu }) => {
                     placeholderTextColor="grey"
                     keyboardType="numeric"
                   />
-
 
                   {/* Sibling Information Table */}
                   <Text style={styles.subSectionTitle}>Sibling Information / भावंडांची माहिती</Text>
@@ -748,22 +713,36 @@ const CustomerForm = ({ toggleMenu }) => {
 
                   {/* Disease History Section */}
                   <Text style={styles.subSectionTitle}>Disease History of Family Members / कुटुंबातील सदस्यांचा आरोग्य इतिहास</Text>
-                  <Checkbox
-                    label="Diabetes / मधुमेह"
-                    checked={diseaseHistory.diabetes}
-                    onChange={() => handleDiseaseCheckboxChange('diabetes')}
+                  <CheckBox
+                    checkBoxColor="teal"
+                    style={styles.checkboxContainer}
+                    onClick={() => handleDiseaseCheckboxChange('diabetes')}
+                    isChecked={diseaseHistory.diabetes.checked}
+                    rightText="Diabetes / मधुमेह"
+                    rightTextStyle={styles.checkboxLabel}
                   />
-                  <Checkbox
-                    label="Tuberculosis / क्षयरोग"
-                    checked={diseaseHistory.tuberculosis}
-                    onChange={() => handleDiseaseCheckboxChange('tuberculosis')}
-                    style={{ color: 'black' }}
+                  {renderOptions('diabetes')}
+
+                  <CheckBox
+                    checkBoxColor="teal"
+                    style={styles.checkboxContainer}
+                    onClick={() => handleDiseaseCheckboxChange('tuberculosis')}
+                    isChecked={diseaseHistory.tuberculosis.checked}
+                    rightText="Tuberculosis / क्षयरोग"
+                    rightTextStyle={styles.checkboxLabel}
                   />
-                  <Checkbox
-                    label="Anaemia / पांडुरोग"
-                    checked={diseaseHistory.anaemia}
-                    onChange={() => handleDiseaseCheckboxChange('anemia')}
+                  {renderOptions('tuberculosis')}
+
+                  <CheckBox
+                    checkBoxColor="teal"
+                    style={styles.checkboxContainer}
+                    onClick={() => handleDiseaseCheckboxChange('anaemia')}
+                    isChecked={diseaseHistory.anaemia.checked}
+                    rightText="Anaemia / पांडुरोग"
+                    rightTextStyle={styles.checkboxLabel}
                   />
+                  {renderOptions('anaemia')}
+
 
                   {/* Addictions */}
                   <Text style={styles.label}>Addictions / व्यसने</Text>
@@ -798,11 +777,8 @@ const CustomerForm = ({ toggleMenu }) => {
                     multiline={true}
                   />
 
-
                 </View>
               </Collapsible>
-
-
 
             </View>
           </View>
@@ -822,9 +798,7 @@ const CustomerForm = ({ toggleMenu }) => {
 };
 
 const windowWidth = Dimensions.get('window').width;
-
 const styles = StyleSheet.create({
-
   outerContainer: {
     flex: 1,
     backgroundColor: '#f0f0f0',
@@ -912,7 +886,6 @@ const styles = StyleSheet.create({
   input: {
     color: 'black',
     width: '100%',
-    // height: ,
     borderWidth: 1,
     borderColor: '#bdc3c7',
     borderRadius: 8,
@@ -1040,7 +1013,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    // flex: 1,
   },
   removeButton: {
     backgroundColor: 'red',
@@ -1058,24 +1030,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-    marginTop: 8
-  },
-  checkboxChecked: {
-    backgroundColor: 'teal',
-    borderColor: 'teal',
+  checkboxText: {
+
+    fontSize: 16,
+    color: 'black', // Adjust the color to make text visible
   },
   checkboxLabel: {
+    marginLeft: 10, // Add margin to separate checkbox from label
     fontSize: 16,
-    marginTop: 8,
-    color: 'grey'
+    color: 'black',
   },
   label: {
     fontSize: 18,
@@ -1114,15 +1077,28 @@ const styles = StyleSheet.create({
     bottom: -20,
     right: 1,
     zIndex: 1,
-
-    // Add any additional styles you need for positioning and appearance
   },
   menuIcon: {
     width: 28,
     height: 30,
-    // Add styles for your icon if needed
   },
-
+  dropdownText: {
+    fontSize: 16,
+    color: 'black',
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: 'black',
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#bdc3c7',
+  },
+  optionsContainer: {
+    marginTop: 10,
+    marginLeft: 20, // Adjust margin as needed
+    
+  },
 });
 
 export default CustomerForm;

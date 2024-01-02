@@ -38,7 +38,7 @@ const IsChildAlreadyPresent = ({ toggleMenu }) => {
         },
         body: JSON.stringify(requestData),
       });
-
+      console.log(response);
       if (response.status === 200) {
         setIsChildPresent(true);
         setIsUpdateVisible(true);
