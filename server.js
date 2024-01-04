@@ -61,7 +61,7 @@ app.post('/checkData2', (req, res) => {
     }
 
     // Check 'generalhistory' table
-    const queryGeneralHistory = `SELECT COUNT(*) AS count FROM generalhistory WHERE anganwadiNo = ? AND childName = ?`;
+    const queryGeneralHistory = `SELECT COUNT(*) AS count FROM generalhistory WHERE anganwadi_no = ? AND child_name = ?`;
     db.query(queryGeneralHistory, [anganwadiNo, childsName], (err, genHistoryResults) => {
       if (err) {
         console.error('Error checking generalhistory table:', err);
@@ -360,10 +360,10 @@ app.post('/generalHistory', (req, res) => {
 
 app.post('/visits', (req, res) => {
   try {
-    const { anganwadiNo, childName, visitDate, haemoglobin, noOfSupplements, grade, weight, height, muac, difference } = req.body;
-    console.log(visitDate);
-    const sql = 'INSERT INTO Visits (anganwadiNo, childName, visitDate,haemoglobin,noOfSupplements,grade, weight, height, muac, difference) VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?)';
-    db.query(sql, [anganwadiNo, childName, visitDate, haemoglobin, noOfSupplements, grade, weight, height, muac, difference], (err, result) => {
+    const { anganwadiNo, childName, visitDate, haemoglobin,  totalNoOfJars, grade, weight, height, muac, difference, observations, iron, multivitamin, calcium, protein } = req.body;
+    console.log(req.body);
+    const sql = 'INSERT INTO Visits (anganwadiNo, childName, visitDate,haemoglobin, totalNoOfJars,grade, weight, height, muac, difference, observations, iron, multivitamin, calcium, protein ) VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?)';
+    db.query(sql, [anganwadiNo, childName, visitDate, haemoglobin,  totalNoOfJars, grade, weight, height, muac, difference, observations, iron, multivitamin, calcium, protein ], (err, result) => {
       if (err) {
         console.error('Database error: ' + err.message);
         res.status(500).json({ error: 'Error inserting data into the database' });
@@ -404,7 +404,7 @@ app.post('/getVisitsData', (req, res) => {
 app.post('/getGeneralHistory', (req, res) => {
   const { anganwadiNo, childsName } = req.body;
 
-  const sql = 'SELECT * FROM GeneralHistory WHERE anganwadiNo = ? AND childName = ?';
+  const sql = 'SELECT * FROM GeneralHistory WHERE anganwadi_no = ? AND child_name = ?';
   const values = [anganwadiNo, childsName];
 
   db.query(sql, values, (err, result) => {
@@ -465,19 +465,6 @@ app.post('/submit-sibling', (req, res) => {
   res.status(200).json({ message: 'Sibling data inserted into MySQL successfully' });
 });
 
-// app.get('/childGenderData', (req, res) => {
-//   const sql = 'SELECT bit_name, child_gender, COUNT(*) as count FROM child GROUP BY bit_name, child_gender';
-//   db.query(sql, (err, result) => {
-//     if (err) {
-//       console.error('Error querying the database: ', err);
-//       res.status(500).json({ error: 'Database error' });
-//     } else {
-//       res.json(result);
-//     }
-//   });
-// });
-
-
 app.get('/childGenderData', (req, res) => {
   const query = 'SELECT bit_name, child_gender FROM child'; // Replace with your actual SQL query
   db.query(query, (err, results) => {
@@ -490,8 +477,6 @@ app.get('/childGenderData', (req, res) => {
     console.log(results)
   });
 });
-
-
 
 
 app.get('/stack_data', (req, res) => {
@@ -521,18 +506,48 @@ app.get('/stack_demo', (req, res) => {
   });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
+app.post('/updateVaccinationData', (req, res) => {
+  const { anganwadiNo, childsName, BCG, POLIO, IPV, PCV, PENTAVALENT, ROTAVIRUS, MR, VITAMIN_A, DPT, TD } = req.body;
+  // Debugging: Log the request body
+  console.log("Request body before query execution: ", {
+    BCG,
+    POLIO,
+    IPV,
+    PCV,
+    PENTAVALENT,
+    ROTAVIRUS,
+    MR,
+    VITAMIN_A,
+    DPT,
+    TD,
+    anganwadiNo,
+    childsName,
+  });
+  const sqlQuery = `
+    UPDATE generalhistory
+    SET BCG = ${BCG},
+        POLIO = ${POLIO},
+        IPV = ${IPV},
+        PCV = ${PCV},
+        PENTAVALENT = ${PENTAVALENT},
+        ROTAVIRUS = ${ROTAVIRUS},
+        MR = ${MR},
+        VITAMIN_A = ${VITAMIN_A},
+        DPT = ${DPT},
+        TD = ${TD}
+    WHERE anganwadi_no = ${anganwadiNo} AND LOWER(child_name) = LOWER('${childsName}')
+  `;
+  db.query(sqlQuery, (error, results) => {
+    if (error) {
+      console.error('Error updating vaccination data:', error);
+      res.status(500).json({ success: false, error: 'Internal Server Error' });
+    } else {
+      console.log('Vaccination data updated successfully.');
+      console.log("Result of query: ", results);
+      res.status(200).json({ success: true });
+    }
+  });
+});
 
 app.get('/bit_name', (req, res) => {
   const query = 'SELECT DISTINCT bit_name FROM child';
@@ -548,21 +563,6 @@ app.get('/bit_name', (req, res) => {
     }
   });
 });
-
-
-// // Endpoint to fetch visit dates for a specific Anganwadi from the MySQL database
-// app.get('/visitDate/:anganwadi_name', async (req, res) => {
-//   const { anganwadi_name } = req.params;
-
-//   try {
-//     const [rows] = await pool.query('SELECT DISTINCT visitDate FROM visits WHERE anganwadi_name = ?', [anganwadi_name]);
-//     const visitDate = rows.map((row) => row.visitDate);
-//     res.json(visitDate);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'An error occurred while fetching visit dates' });
-//   }
-// });
 
 app.get('/visitDate/:bit_name', (req, res) => {
   const { bit_name } = req.params;

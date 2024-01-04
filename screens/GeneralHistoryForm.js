@@ -8,6 +8,7 @@ import COLORS from '../constants/colors';
 import { API_URL } from './config';
 const checkmarkImage = require('../assets/check-mark.png');
 import CheckBox from 'react-native-check-box';
+import { useEffect } from 'react';
 
 const CollapsibleSectionWithIcon = ({ title, children }) => {
   const [collapsed, setCollapsed] = useState(true);
@@ -69,6 +70,7 @@ const SupplementCounter = ({ value, onIncrement, onDecrement }) => {
 };
 
 const VisitRow = ({ visit, index, handleVisitFieldChange }) => {
+
   return (
     <View>
       <Text style={styles.label}>Date:</Text>
@@ -133,13 +135,37 @@ const VisitRow = ({ visit, index, handleVisitFieldChange }) => {
         style={styles.textInput}
       />
 
-      <Text style={styles.label}>Weight (Kg):</Text>
+      {/* <Text style={styles.label}>Weight (Kg):</Text>
       <TextInput
         value={visit.weight}
         onChangeText={(text) => handleVisitFieldChange(index, 'weight', text)}
         keyboardType="phone-pad"
         style={styles.textInput}
-      />
+      /> */}
+
+      <Text style={styles.label}>Weight:</Text>
+      <View style={styles.supplementContainer}>
+        <TextInput
+          value={visit.tempWeightKg}
+          onChangeText={(text) => {
+            console.log('Text input for kg changed:', text);
+            handleVisitFieldChange(index, 'tempWeightKg', text);
+          }}
+          keyboardType="phone-pad"
+          style={styles.textInput}
+        />
+        <Text style={{ marginHorizontal: 10, fontSize: 16, color: 'black' }}>kg</Text>
+        <TextInput
+          value={visit.tempWeightGrams}
+          onChangeText={(text) => {
+            console.log('Text input for grams changed:', text);
+            handleVisitFieldChange(index, 'tempWeightGrams', text);
+          }}
+          keyboardType="phone-pad"
+          style={[styles.textInput, { marginLeft: 15 }]}
+        />
+        <Text style={{ marginHorizontal: 10, fontSize: 16, color: 'black' }}>grams</Text>
+      </View>
 
       <Text style={styles.label}>Height (cm):</Text>
       <TextInput
@@ -218,6 +244,7 @@ const GeneralHistoryForm = () => {
     motion: '',
     otherSigns: '',
     visits: [],
+    totalWeight: '',
     vaccination: {
       BCG: false,
       POLIO: false,
@@ -247,14 +274,15 @@ const GeneralHistoryForm = () => {
       multivitamin: 0,
       calcium: 0,
       protein: 0,
-
+      tempWeightKg: 0,
+      tempWeightGrams: 0,
     };
     setGeneralHistory((prevHistory) => ({
       ...prevHistory,
       visits: [...prevHistory.visits, newVisit],
     }));
   };
-  
+
 
   const route = useRoute();
   const { anganwadiNo, childsName } = route.params;
@@ -264,8 +292,8 @@ const GeneralHistoryForm = () => {
 
     try {
       const generalHistoryData = {
-        anganwadiNo: anganwadiNo,
-        childName: childsName,
+        anganwadi_no: anganwadiNo,
+        child_name: childsName,
         vomiting: generalHistory.vomiting, // Accessing values from generalHistory state
         fever: generalHistory.fever,
         commonCold: generalHistory.commonCold,
@@ -295,7 +323,7 @@ const GeneralHistoryForm = () => {
         dpt: generalHistory.vaccination.DPT,
         td: generalHistory.vaccination.TD,
       };
-      console.log(generalHistoryData);
+      //console.log(generalHistoryData);
       //console.log('API URL', API_URL);
       const response = await fetch(`${API_URL}/generalHistory`, {
         method: 'POST',
@@ -304,14 +332,14 @@ const GeneralHistoryForm = () => {
         },
         body: JSON.stringify(generalHistoryData),
       });
-      
+
 
       if (response.status === 200) {
         //console.log(response.body);
         console.log('Form submitted successfully');
         // Add any additional logic or navigation here after successful submission
       } else {
-        console.log(response);
+        //console.log(response);
         console.error('Error submitting form - response error');
       }
     } catch (error) {
@@ -327,6 +355,7 @@ const GeneralHistoryForm = () => {
     console.log('Child name: ', childsName);
     try {
       for (const visit of generalHistory.visits) {
+        console.log("VISITTTTT: ",visit);
         const [day, month, year] = visit.date.split('-');
         const formattedDate = `${year}-${month}-${day}`;
         const visitData = {
@@ -346,7 +375,7 @@ const GeneralHistoryForm = () => {
           calcium: visit.calcium,
           protein: visit.protein,
         };
-        console.log(visitData);
+        //console.log(visitData);
         const response = await fetch(`${API_URL}/visits`, {
           method: 'POST',
           headers: {
@@ -367,6 +396,12 @@ const GeneralHistoryForm = () => {
     }
   };
 
+  const handleToggle = (field) => {
+    setGeneralHistory((prevHistory) => ({
+      ...prevHistory,
+      [field]: !prevHistory[field],
+    }));
+  };
 
 
   const handleRemoveVisit = () => {
@@ -376,25 +411,55 @@ const GeneralHistoryForm = () => {
     }));
   };
 
+  // const handleVisitFieldChange = (index, field, value) => {
+  //   // Assuming the date field is 'visit.date'
+  //   const newVisits = [...generalHistory.visits];
+  //   newVisits[index][field] = value;
+  //   setGeneralHistory((prevHistory) => ({
+  //     ...prevHistory,
+  //     visits: newVisits,
+  //   }));
+  // };
+
   const handleVisitFieldChange = (index, field, value) => {
-    // Assuming the date field is 'visit.date'
-   
-    const newVisits = [...generalHistory.visits];
-    newVisits[index][field] = value;
-    setGeneralHistory((prevHistory) => ({
-      ...prevHistory,
-      visits: newVisits,
-    }));
+    setGeneralHistory((prevHistory) => {
+      const newVisits = [...prevHistory.visits];
+      newVisits[index] = {
+        ...newVisits[index],
+        [field]: value,
+      };
+  
+      return {
+        ...prevHistory,
+        visits: newVisits,
+      };
+    });
   };
   
-
-  const handleToggle = (field) => {
-    setGeneralHistory((prevHistory) => ({
-      ...prevHistory,
-      [field]: !prevHistory[field],
-    }));
-  };
-
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setGeneralHistory((prevHistory) => {
+        const newVisits = [...prevHistory.visits];
+        newVisits.forEach((visit, index) => {
+          let weightKg = parseFloat(visit.tempWeightKg) || 0;
+          let weightGrams = parseFloat(visit.tempWeightGrams) || 0;
+          let totalWeight = weightKg + weightGrams / 1000;
+          newVisits[index] = {
+            ...visit,
+            weight: totalWeight.toFixed(3),
+          };
+        });
+  
+        return {
+          ...prevHistory,
+          visits: newVisits,
+        };
+      });
+    }, 300);
+  
+    return () => clearTimeout(timeoutId);
+  }, [generalHistory.visits]);
+  
 
   const handleTextInputChange = (field, value) => {
     setGeneralHistory((prevHistory) => ({
@@ -797,7 +862,7 @@ const styles = StyleSheet.create({
     color: 'white', // Set the text color to white
     // textAlign: 'center',
     // textAlignVertical: 'center', 
-    
+
   },
   counterValue: {
     fontSize: 18,

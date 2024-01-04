@@ -11,6 +11,7 @@ import {
     StatusBar,
     FlatList,
 } from 'react-native';
+import CheckBox from 'react-native-check-box';
 import COLORS from '../constants/colors';
 import { API_URL } from './config';
 
@@ -35,6 +36,10 @@ const GeneralHistoryDisplay = ({ route }) => {
         calcium: 0,
         protein: 0,
     });
+    const [editVaccinationList, setEditVaccinationList] = useState(false);
+    const [vaccinationStatus, setVaccinationStatus] = useState({});
+    const [originalVaccinationStatus, setOriginalVaccinationStatus] = useState({});
+    const [tempVaccinationStatus, setTempVaccinationStatus] = useState({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,6 +60,43 @@ const GeneralHistoryDisplay = ({ route }) => {
                     const data = await response.json();
                     console.log("General History Data: ", data);
                     setGeneralHistoryData(data);
+                    const latestHealthData = data[data.length - 1];
+                    setVaccinationStatus({
+                        BCG: latestHealthData?.BCG === 1,
+                        POLIO: latestHealthData?.POLIO === 1,
+                        IPV: latestHealthData?.IPV === 1,
+                        PCV: latestHealthData?.PCV === 1,
+                        PENTAVALENT: latestHealthData?.PENTAVALENT === 1,
+                        ROTAVIRUS: latestHealthData?.ROTAVIRUS === 1,
+                        MR: latestHealthData?.MR === 1,
+                        VITAMIN_A: latestHealthData?.VITAMIN_A === 1,
+                        DPT: latestHealthData?.DPT === 1,
+                        TD: latestHealthData?.TD === 1,
+                    });
+                    setOriginalVaccinationStatus({
+                        BCG: latestHealthData?.BCG === 1,
+                        POLIO: latestHealthData?.POLIO === 1,
+                        IPV: latestHealthData?.IPV === 1,
+                        PCV: latestHealthData?.PCV === 1,
+                        PENTAVALENT: latestHealthData?.PENTAVALENT === 1,
+                        ROTAVIRUS: latestHealthData?.ROTAVIRUS === 1,
+                        MR: latestHealthData?.MR === 1,
+                        VITAMIN_A: latestHealthData?.VITAMIN_A === 1,
+                        DPT: latestHealthData?.DPT === 1,
+                        TD: latestHealthData?.TD === 1,
+                    });
+                    setTempVaccinationStatus({
+                        BCG: latestHealthData?.BCG === 1,
+                        POLIO: latestHealthData?.POLIO === 1,
+                        IPV: latestHealthData?.IPV === 1,
+                        PCV: latestHealthData?.PCV === 1,
+                        PENTAVALENT: latestHealthData?.PENTAVALENT === 1,
+                        ROTAVIRUS: latestHealthData?.ROTAVIRUS === 1,
+                        MR: latestHealthData?.MR === 1,
+                        VITAMIN_A: latestHealthData?.VITAMIN_A === 1,
+                        DPT: latestHealthData?.DPT === 1,
+                        TD: latestHealthData?.TD === 1,
+                    });
                 } else {
                     console.log('Data not found in the database');
                 }
@@ -124,9 +166,9 @@ const GeneralHistoryDisplay = ({ route }) => {
     const handleSaveVisit = async () => {
         try {
             const [day, month, year] = newVisit.date.split('-');
-        const formattedDate = `${year}-${month}-${day}`;
+            const formattedDate = `${year}-${month}-${day}`;
             const requestData = {
-                
+
                 anganwadiNo,
                 childName: childsName,
                 visitDate: formattedDate,
@@ -256,6 +298,62 @@ const GeneralHistoryDisplay = ({ route }) => {
         );
     };
 
+    const handleVaccinationCheck = (vaccine) => {
+        setVaccinationStatus((prevStatus) => ({
+            ...prevStatus,
+            [vaccine]: !prevStatus[vaccine],
+        }));
+    };
+
+    const handleSaveEditing = async () => {
+        try {
+            const requestData = {
+                anganwadiNo: anganwadiNo,
+                childsName: childsName,
+                BCG: vaccinationStatus.BCG ? 1 : 0,
+                POLIO: vaccinationStatus.POLIO ? 1 : 0,
+                IPV: vaccinationStatus.IPV ? 1 : 0,
+                PCV: vaccinationStatus.PCV ? 1 : 0,
+                PENTAVALENT: vaccinationStatus.PENTAVALENT ? 1 : 0,
+                ROTAVIRUS: vaccinationStatus.ROTAVIRUS ? 1 : 0,
+                MR: vaccinationStatus.MR ? 1 : 0,
+                VITAMIN_A: vaccinationStatus.VITAMIN_A ? 1 : 0,
+                DPT: vaccinationStatus.DPT ? 1 : 0,
+                TD: vaccinationStatus.TD ? 1 : 0,
+            };
+    
+            const response = await fetch(`${API_URL}/updateVaccinationData`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+            
+            if (response.status === 200) {
+                const responseData = await response.json();
+                console.log("Response Data: ", responseData);
+                console.log('Vaccination data updated successfully');
+                // Save the current state as the original state
+                setOriginalVaccinationStatus({ ...vaccinationStatus });
+                // Also, update the vaccinationStatus state
+                setVaccinationStatus({ ...vaccinationStatus });
+                // Switch back to display mode
+                setEditVaccinationList(false);
+            } else {
+                console.log('Failed to update vaccination data');
+            }            
+        } catch (error) {
+            console.error('Error updating vaccination data:', error);
+        }
+    };    
+
+    const handleCancelEditing = () => {
+        // Restore the original state when Cancel button is clicked
+        setVaccinationStatus({ ...originalVaccinationStatus });
+        setEditVaccinationList(false);
+    };
+   
     return (
         <ScrollView style={styles.container}>
             {visitsData ? (
@@ -299,6 +397,58 @@ const GeneralHistoryDisplay = ({ route }) => {
                             <Text style={styles.text}>{healthData.motion}</Text>
                             <Text style={styles.label}>Observations and Suggestions:</Text>
                             <Text style={styles.text}>{healthData.observationsAndSuggestions}</Text>
+
+                            <View style={styles.fieldContainer}>
+                                <Text style={styles.subSectionTitle}>Vaccinations Completed:</Text>
+                                {editVaccinationList ? (
+                                    Object.keys(vaccinationStatus).map((vaccine) => (
+                                        <CheckBox
+                                            key={vaccine}
+                                            style={{ flex: 1, padding: 10 }}
+                                            onClick={() => handleVaccinationCheck(vaccine)}
+                                            isChecked={vaccinationStatus[vaccine]}
+                                            leftText={vaccine}
+                                            leftTextStyle={{ color: 'black' }}
+                                            checkBoxColor="teal"
+                                        />
+                                    ))
+                                ) : (
+                                    Object.keys(vaccinationStatus).map((vaccine) => (
+                                        <View key={vaccine} style={styles.vaccineItem}>
+                                            <Text style={styles.vaccineLabel}>{vaccine}:</Text>
+                                            <Text style={styles.vaccineText}>
+                                                {vaccinationStatus[vaccine] ? 'Yes' : 'No'}
+                                            </Text>
+                                        </View>
+                                    ))
+                                )}
+                            </View>
+                            {editVaccinationList && (
+                                <View style={styles.editButtonsContainer}>
+                                    <TouchableOpacity
+                                        onPress={handleSaveEditing}
+                                        style={styles.saveEditButton}
+                                    >
+                                        <Text style={styles.buttonText}>Save</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={handleCancelEditing}
+                                        style={styles.cancelEditButton}
+                                    >
+                                        <Text style={styles.buttonText}>Cancel</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            <TouchableOpacity
+                                onPress={() => setEditVaccinationList(!editVaccinationList)}
+                                style={styles.editVaccinationListButton}
+                            >
+                                <Text style={styles.buttonText}>
+                                    {editVaccinationList ? 'Done Editing' : 'Edit Vaccination List'}
+                                </Text>
+                            </TouchableOpacity>
+
                         </View>
                     ))}
                     <View style={styles.fieldContainer}>
@@ -326,29 +476,29 @@ const GeneralHistoryDisplay = ({ route }) => {
                             <Text style={styles.label}>Iron:</Text>
                             <SupplementCounter
                                 value={newVisit.iron}
-                                onIncrement={() => setNewVisit({...newVisit, iron: newVisit.iron + 1})}
-                                onDecrement={() => setNewVisit({...newVisit, iron: Math.max(0, newVisit.iron - 1)})}
+                                onIncrement={() => setNewVisit({ ...newVisit, iron: newVisit.iron + 1 })}
+                                onDecrement={() => setNewVisit({ ...newVisit, iron: Math.max(0, newVisit.iron - 1) })}
                             />
 
                             <Text style={styles.label}>Calcium:</Text>
                             <SupplementCounter
                                 value={newVisit.calcium}
-                                onIncrement={() => setNewVisit({...newVisit, calcium: newVisit.calcium + 1})}
-                                onDecrement={() => setNewVisit({...newVisit, calcium: Math.max(0, newVisit.calcium - 1)})}
+                                onIncrement={() => setNewVisit({ ...newVisit, calcium: newVisit.calcium + 1 })}
+                                onDecrement={() => setNewVisit({ ...newVisit, calcium: Math.max(0, newVisit.calcium - 1) })}
                             />
 
                             <Text style={styles.label}>Protein:</Text>
                             <SupplementCounter
                                 value={newVisit.protein}
-                                onIncrement={() => setNewVisit({...newVisit, protein: newVisit.protein + 1})}
-                                onDecrement={() => setNewVisit({...newVisit, protein: Math.max(0, newVisit.protein - 1)})}
+                                onIncrement={() => setNewVisit({ ...newVisit, protein: newVisit.protein + 1 })}
+                                onDecrement={() => setNewVisit({ ...newVisit, protein: Math.max(0, newVisit.protein - 1) })}
                             />
 
                             <Text style={styles.label}>Multivitamin:</Text>
                             <SupplementCounter
                                 value={newVisit.multivitamin}
-                                onIncrement={() => setNewVisit({...newVisit, multivitamin: newVisit.multivitamin + 1})}
-                                onDecrement={() => setNewVisit({...newVisit, multivitamin: Math.max(0, newVisit.multivitamin - 1)})}
+                                onIncrement={() => setNewVisit({ ...newVisit, multivitamin: newVisit.multivitamin + 1 })}
+                                onDecrement={() => setNewVisit({ ...newVisit, multivitamin: Math.max(0, newVisit.multivitamin - 1) })}
                             />
 
                             <Text style={styles.label}>Total No. of Supplements:</Text>
@@ -550,13 +700,13 @@ const styles = StyleSheet.create({
     supplementContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-      },
-      supplementCounter: {
+    },
+    supplementCounter: {
         flexDirection: 'row',
         alignItems: 'center',
         marginTop: 5,
-      },
-      counterButton: {
+    },
+    counterButton: {
         backgroundColor: 'teal',  // Set the background color to teal
         borderRadius: 8,
         //padding: 5,
@@ -565,21 +715,64 @@ const styles = StyleSheet.create({
         width: 40,
         justifyContent: 'center', // Center the content vertically
         alignItems: 'center', // Center the content horizontally
-      },
-      buttonText: {
+    },
+    buttonText: {
         fontSize: 22,
         color: 'white', // Set the text color to white
         // textAlign: 'center',
         // textAlignVertical: 'center', 
-        
-      },
-      counterValue: {
+
+    },
+    counterValue: {
         fontSize: 18,
         paddingHorizontal: 15,
         color: COLORS.black,
         //lineHeight: 30,
-      },
-    
+    },
+    vaccineItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    vaccineLabel: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginRight: 5,
+        color: COLORS.black,
+    },
+    vaccineText: {
+        fontSize: 16,
+        color: COLORS.black,
+    },
+    editVaccinationListButton: {
+        backgroundColor: 'teal',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 10,
+    },
+    editButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 10,
+    },
+    saveEditButton: {
+        backgroundColor: 'teal',
+        padding: 10,
+        borderRadius: 5,
+    },
+    cancelEditButton: {
+        backgroundColor: 'gray',
+        padding: 10,
+        borderRadius: 5,
+    },
+    buttonText: {
+        color: 'white',
+        textAlign: 'center',
+    },
+
 });
 
 export default GeneralHistoryDisplay;
