@@ -56,21 +56,26 @@ const GrowthChartPerChild = ({ route, toggleMenu }) => {
 
   // Create an array of custom labels for the graph ("visit1," "visit2," etc.)
   const customLabels = heights.map((_, index) => `visit${index + 1}`);
-
-  // Before using haemoglobin array in the LineChart component
   const filledHaemoglobin = haemoglobin.map((value, index) => {
-    if (isNaN(value) && index > 0) {
-      // If the value is NaN and index is greater than 0, replace it with the previous numeric value
-      let previousNumericValue = null;
+    if (
+      isNaN(value) ||
+      value === null ||
+      value === "" ||
+      value === 0 ||
+      value === "0.0"
+    ) {
+      // If the value is NaN or null or empty string or 0 or "0.0",
+      // replace it with the first non-zero value in the data or previous numeric value
+      let firstNonZeroValue = null;
 
       for (let i = index - 1; i >= 0; i--) {
-        if (!isNaN(haemoglobin[i])) {
-          previousNumericValue = haemoglobin[i];
+        if (!isNaN(haemoglobin[i]) && haemoglobin[i] !== null && haemoglobin[i] !== "" && haemoglobin[i] !== "0.0") {
+          firstNonZeroValue = haemoglobin[i];
           break;
         }
       }
 
-      return previousNumericValue || 0;
+      return firstNonZeroValue || 0;
     }
     return value;
   });
@@ -82,7 +87,7 @@ const GrowthChartPerChild = ({ route, toggleMenu }) => {
     visit: visitDate,
     height: `${parseFloat(heights[index]).toFixed(2)} cm`,
     weight: `${parseFloat(weights[index]).toFixed(2)} kg`,
-    haemoglobin: `${parseFloat(haemoglobin[index]).toFixed(2)} g/dL`,
+    haemoglobin: `${parseFloat(filledHaemoglobin[index]).toFixed(2)} g/dL`,
   }));
 
   // Normalize the height, weight, and haemoglobin data
@@ -122,7 +127,7 @@ const GrowthChartPerChild = ({ route, toggleMenu }) => {
         <div class="info-text">Date of Birth: ${dob}</div>
       </div>
     `;
-  
+
     const tableRows = tableData.map(
       (item, index) => `
         <tr>
@@ -133,7 +138,7 @@ const GrowthChartPerChild = ({ route, toggleMenu }) => {
         </tr>
       `
     );
-  
+
     const tableHtml = `
       <table style="width: 100%; border-collapse: collapse;">
         <thead>
@@ -149,7 +154,7 @@ const GrowthChartPerChild = ({ route, toggleMenu }) => {
         </tbody>
       </table>
     `;
-  
+
     const htmlContent = `
     <html>
       <head>
@@ -288,8 +293,8 @@ const GrowthChartPerChild = ({ route, toggleMenu }) => {
     </html>
   `;
 
-  return htmlContent;
-};
+    return htmlContent;
+  };
   const generatePDF = async () => {
     try {
       const chartImageUri = await captureChart();
@@ -404,30 +409,30 @@ const GrowthChartPerChild = ({ route, toggleMenu }) => {
             </View>
 
             <TouchableOpacity
-        style={{
-          ...styles.printButton,
-          position: 'absolute',
-          top: -10,
-          right: -20,
-          flexDirection: 'column',
-          alignItems: 'center',
-          marginBottom:90,
-        }}
-        onPress={generatePDF}
-      >
-        <Image
-          source={require('../assets/printer1.png')}
-          style={{
-            width: 35,
-            height: 35,
-            borderRadius: 10,
-            backgroundColor: '#f4f4f4',
-            marginEnd:40,
-            marginBottom:40
-          }}
-        />
-        <Text style={{ color: 'black', fontSize: 14, marginTop: -40 ,marginEnd:45}}> PDF</Text>
-      </TouchableOpacity>
+              style={{
+                ...styles.printButton,
+                position: 'absolute',
+                top: -10,
+                right: -20,
+                flexDirection: 'column',
+                alignItems: 'center',
+                marginBottom: 90,
+              }}
+              onPress={generatePDF}
+            >
+              <Image
+                source={require('../assets/printer1.png')}
+                style={{
+                  width: 35,
+                  height: 35,
+                  borderRadius: 10,
+                  backgroundColor: '#f4f4f4',
+                  marginEnd: 40,
+                  marginBottom: 40
+                }}
+              />
+              <Text style={{ color: 'black', fontSize: 14, marginTop: -40, marginEnd: 45 }}> PDF</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -436,124 +441,124 @@ const GrowthChartPerChild = ({ route, toggleMenu }) => {
 };
 const styles = StyleSheet.create({
 
-    pdfButton: {
-        marginTop: 20,
-        backgroundColor: '#007BFF',
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-      },
-      pdfButtonText: {
-        color: 'white',
-        fontSize: 16,
-      },
-    menuButton: {
-        position: 'absolute',
-        bottom: -20,
-        right: 1,
-        zIndex: 1,
-   
-        // Add any additional styles you need for positioning and appearance
-      },
-      menuIcon: {
-        width: 28,
-        height: 30,
-        // Add styles for your icon if needed
-      },
-   
-    container: {
-        flex: 1,
-        backgroundColor: '#f4f4f4',
-        paddingVertical: 20,
-    },
-    chart: {
-        margin: 16,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        elevation: 4,
-        padding: 16,
-    },
-    chartTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#555',
-    },
-    chartStyle: {
-        marginVertical: 8,
-    },
-    table: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        elevation: 4,
-        margin: 16,
-        borderWidth: 1, // Add a border to the table
-        borderColor: '#ccc', // Border color
-    },
-    tableTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        margin: 16,
-        color: '#555',
-    },
-    tableContainer: {
-        backgroundColor: 'white',
-        borderRadius: 15,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 8,
-    },
-    tableHeader: {
-        backgroundColor: 'teal',
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderBottomWidth: 1, // Add a border to the bottom of the header
-        borderBottomColor: '#ccc', // Border color
-    },
-    tableHeaderText: {
-        fontSize: 16,
-        color: 'white',
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    tableRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-    },
-    tableCell: {
-        flex: 1,
-        textAlign: 'center',
-        color: '#333'
+  pdfButton: {
+    marginTop: 20,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  pdfButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  menuButton: {
+    position: 'absolute',
+    bottom: -20,
+    right: 1,
+    zIndex: 1,
 
+    // Add any additional styles you need for positioning and appearance
+  },
+  menuIcon: {
+    width: 28,
+    height: 30,
+    // Add styles for your icon if needed
+  },
+
+  container: {
+    flex: 1,
+    backgroundColor: '#f4f4f4',
+    paddingVertical: 20,
+  },
+  chart: {
+    margin: 16,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    elevation: 4,
+    padding: 16,
+  },
+  chartTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#555',
+  },
+  chartStyle: {
+    marginVertical: 8,
+  },
+  table: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    elevation: 4,
+    margin: 16,
+    borderWidth: 1, // Add a border to the table
+    borderColor: '#ccc', // Border color
+  },
+  tableTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    margin: 16,
+    color: '#555',
+  },
+  tableContainer: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
     },
-    childInfo: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        elevation: 4,
-        margin: 16,
-        padding: 16,
-      },
-      infoText: {
-        fontSize: 16,
-        marginBottom: 8,
-        color: 'black'
-      },
-      scrollView: {
-        flex: 1,
-        width: '100%',
-      },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  tableHeader: {
+    backgroundColor: 'teal',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1, // Add a border to the bottom of the header
+    borderBottomColor: '#ccc', // Border color
+  },
+  tableHeaderText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  tableCell: {
+    flex: 1,
+    textAlign: 'center',
+    color: '#333'
+
+  },
+  childInfo: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    elevation: 4,
+    margin: 16,
+    padding: 16,
+  },
+  infoText: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: 'black'
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
 });
 
 export default GrowthChartPerChild;

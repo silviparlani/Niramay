@@ -35,6 +35,8 @@ const GeneralHistoryDisplay = ({ route }) => {
         multivitamin: 0,
         calcium: 0,
         protein: 0,
+        weightKg: '',
+        weightGrams: '',
     });
     const [editVaccinationList, setEditVaccinationList] = useState(false);
     const [vaccinationStatus, setVaccinationStatus] = useState({});
@@ -160,6 +162,8 @@ const GeneralHistoryDisplay = ({ route }) => {
             multivitamin: 0,
             calcium: 0,
             protein: 0,
+            weightKg: '',
+            weightGrams: '',
         });
     };
 
@@ -167,6 +171,10 @@ const GeneralHistoryDisplay = ({ route }) => {
         try {
             const [day, month, year] = newVisit.date.split('-');
             const formattedDate = `${year}-${month}-${day}`;
+            const weightKg = parseFloat(newVisit.weightKg) || 0;
+            const weightGrams = parseFloat(newVisit.weightGrams) || 0;
+            const totalWeight = weightKg + weightGrams / 1000;
+
             const requestData = {
 
                 anganwadiNo,
@@ -184,6 +192,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                 multivitamin: newVisit.multivitamin,
                 calcium: newVisit.calcium,
                 protein: newVisit.protein,
+                weight: totalWeight.toFixed(3),
             };
 
             const response = await fetch(`${API_URL}/visits`, {
@@ -196,7 +205,7 @@ const GeneralHistoryDisplay = ({ route }) => {
 
             if (response.status === 200) {
                 // Successfully inserted into the server, you can update the local state as well.
-                console.log('SILVIIIIIIIIIIIIIIIIIIII');
+                console.log('Response: ', response.body);
                 setVisitsData([...visitsData, newVisit]);
                 setNewVisit({
                     date: '',
@@ -212,6 +221,8 @@ const GeneralHistoryDisplay = ({ route }) => {
                     multivitamin: 0,
                     calcium: 0,
                     protein: 0,
+                    weightKg: '',
+                    weightGrams: '',
                 });
                 setAddVisitMode(false);
             } else {
@@ -321,7 +332,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                 DPT: vaccinationStatus.DPT ? 1 : 0,
                 TD: vaccinationStatus.TD ? 1 : 0,
             };
-    
+
             const response = await fetch(`${API_URL}/updateVaccinationData`, {
                 method: 'POST',
                 headers: {
@@ -329,7 +340,7 @@ const GeneralHistoryDisplay = ({ route }) => {
                 },
                 body: JSON.stringify(requestData),
             });
-            
+
             if (response.status === 200) {
                 const responseData = await response.json();
                 console.log("Response Data: ", responseData);
@@ -342,18 +353,18 @@ const GeneralHistoryDisplay = ({ route }) => {
                 setEditVaccinationList(false);
             } else {
                 console.log('Failed to update vaccination data');
-            }            
+            }
         } catch (error) {
             console.error('Error updating vaccination data:', error);
         }
-    };    
+    };
 
     const handleCancelEditing = () => {
         // Restore the original state when Cancel button is clicked
         setVaccinationStatus({ ...originalVaccinationStatus });
         setEditVaccinationList(false);
     };
-   
+
     return (
         <ScrollView style={styles.container}>
             {visitsData ? (
@@ -526,13 +537,24 @@ const GeneralHistoryDisplay = ({ route }) => {
                                 style={styles.textInput}
                             />
 
-                            <Text style={styles.label}>Weight (Kg):</Text>
-                            <TextInput
-                                value={newVisit.weight}
-                                onChangeText={(text) => setNewVisit({ ...newVisit, weight: text })}
-                                keyboardType="phone-pad"
-                                style={styles.textInput}
-                            />
+                            <Text style={styles.label}>Weight:</Text>
+                            <View style={styles.weightContainer}>
+                                <TextInput
+                                    value={newVisit.weightKg}
+                                    onChangeText={(text) => setNewVisit({ ...newVisit, weightKg: text })}
+                                    keyboardType="numeric"
+                                    style={styles.weightInput}
+                                />
+                                <Text style={styles.label}>kg</Text>
+                                <TextInput
+                                    value={newVisit.weightGrams}
+                                    onChangeText={(text) => setNewVisit({ ...newVisit, weightGrams: text })}
+                                    keyboardType="numeric"
+                                    style={styles.weightInput}
+                                />
+                                <Text style={styles.label}>grams</Text>
+                            </View>
+
 
                             <Text style={styles.label}>Height (cm):</Text>
                             <TextInput
@@ -771,6 +793,24 @@ const styles = StyleSheet.create({
     buttonText: {
         color: 'white',
         textAlign: 'center',
+    },
+    weightContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 8,
+        marginBottom: 8,
+    },
+
+    weightInput: {
+        flex: 0.4,
+        borderWidth: 1,
+        borderColor: COLORS.black,
+        borderRadius: 5,
+        paddingHorizontal: 8,
+        height: 40,
+        marginRight: 0.1,
+        color: COLORS.black,
     },
 
 });
