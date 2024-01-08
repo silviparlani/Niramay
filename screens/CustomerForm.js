@@ -5,8 +5,7 @@ import { RadioButton } from 'react-native-paper';
 import CheckBox from 'react-native-check-box';
 //import ModalDropdown from 'react-native-modal-dropdown';
 import React, { useState } from 'react';
-import RNPickerSelect from 'react-native-picker-select';
-
+import ModalDropdown from 'react-native-modal-dropdown';
 
 const CustomerForm = () => {
   const [bitName, setBitName] = useState('');
@@ -37,6 +36,7 @@ const CustomerForm = () => {
   const [siblings, setSiblings] = useState([]);
   const [addictions, setAddictions] = useState('');
   const [sourceOfDrinkingWater, setSourceOfDrinkingWater] = useState('');
+  const [otherText, setOtherText] = useState('');
   const [other, setOther] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const motherOccupationOptions = ['Housewife', 'Daily Wage Worker', 'Domestic Help', 'Nurse', 'Ragpicker', 'Other'];
@@ -56,6 +56,8 @@ const CustomerForm = () => {
     { label: 'Paternal Grandmother/पाटी', value: 'Paternal Grandmother/पाटी' },
     { label: 'Paternal Grandfather/पाट्या', value: 'Paternal Grandfather/पाट्या' },
   ];
+
+  const Options = ['Tap', 'Tanker', 'Well', 'Other'];
 
   const handleDiseaseCheckboxChange = (diseaseKey) => {
     setDiseaseHistory((prevHistory) => {
@@ -314,6 +316,25 @@ const CustomerForm = () => {
 
     setErrors(newErrors);
   };
+
+  const handleDropdownSelect = (index, value) => {
+    if (value === 'Other') {
+      // Optionally, you can clear the text when 'Other' is selected again
+      setOtherText('');
+    }
+    setSourceOfDrinkingWater(value);
+  };
+
+  const renderRow = (rowData, rowID, highlighted) => {
+    return (
+      <View style={styles.dropdownRow}>
+        <Text style={[styles.dropdownText, highlighted && { color: '#7f8c8d' }]}>
+          {rowData}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.outerContainer}>
       <StatusBar barStyle="dark-content" backgroundColor="teal" />
@@ -756,7 +777,7 @@ const CustomerForm = () => {
                   />
 
                   {/* Source of Drinking Water */}
-                  <Text style={styles.label}>Source of Drinking Water / पिण्याच्या पाण्याचा स्त्रोत</Text>
+                  {/* <Text style={styles.label}>Source of Drinking Water / पिण्याच्या पाण्याचा स्त्रोत</Text>
                   <TextInput
                     style={[styles.input, styles.textArea, { color: 'black' }]}
                     value={sourceOfDrinkingWater}
@@ -764,6 +785,36 @@ const CustomerForm = () => {
                     placeholder="Enter source of drinking water"
                     placeholderTextColor="grey"
                     multiline={true}
+                  /> */}
+
+                  {/* Source of Drinking Water */}
+                  {/* <Text style={styles.label}>Source of Drinking Water / पिण्याच्या पाण्याचा स्त्रोत</Text>
+                  <RNPickerSelect
+                    style={styles.pickerSelectAndroid}
+                    onValueChange={(value) => setSourceOfDrinkingWater(value)}
+                    placeholder={{
+                      label: 'Select source of drinking water',
+                      value: null,
+                    }}
+                    items={[
+                      { label: 'Tap', value: 'Tap' },
+                      { label: 'Tanker', value: 'Tanker' },
+                      { label: 'Well', value: 'Well' },
+                      { label: 'Other', value: 'Other' },
+                    ]}
+                  /> */}
+
+                  {/* Source of Drinking Water */}
+                  <Text style={styles.label}>Source of Drinking Water / पिण्याच्या पाण्याचा स्त्रोत</Text>
+                  <ModalDropdown
+                    options={['Tap', 'Tanker', 'Well', 'Other']}
+                    onSelect={(index, value) => setSourceOfDrinkingWater(value)}
+                    textStyle={{ fontSize: 16, color: '#7f8c8d' }}  
+                    dropdownTextStyle={{ fontSize: 16, color: '#7f8c8d' }} 
+                    defaultValue={'Select source of drinking water'}
+                    style={styles.pickerSelectAndroid}
+                    dropdownStyle={styles.dropdownStyle} 
+                    optionsTextStyle={styles.optionsTextStyle} 
                   />
 
                   {/* Other */}
@@ -1097,7 +1148,26 @@ const styles = StyleSheet.create({
   optionsContainer: {
     marginTop: 10,
     marginLeft: 20, // Adjust margin as needed
-    
+
+  },
+  pickerSelectAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#bdc3c7',
+    borderRadius: 8,
+    paddingRight: 30,
+  },
+
+  dropdownStyle: {
+    width: 200,  // Adjust the width of the dropdown
+    backgroundColor: '#f0f0f0',  // Set the background color of the dropdown
+  },
+
+  optionsTextStyle: {
+    fontSize: 16,
+    color: '#7f8c8d',  // Set text color for options
   },
 });
 

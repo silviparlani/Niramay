@@ -7,9 +7,13 @@ import { color } from 'react-native-elements/dist/helpers/index.js';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import COLORS from '../constants/colors.js';
 import RNPrint from 'react-native-print';
+import { RadioButton } from 'react-native-paper'; // Import RadioButton from react-native-paper
+import CheckBox from 'react-native-check-box';
 
 const ViewForm = ({ route }) => {
   const { anganwadiNo, childsName } = route.params;
+  const [selectedSource, setSelectedSource] = useState(''); // State to track selected source
+  const [otherSourceValue, setOtherSourceValue] = useState('');
   const [formData, setFormData] = useState(null);
   const [siblingsData, setSiblingsData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +21,144 @@ const ViewForm = ({ route }) => {
   const [updatedSiblings, setUpdatedSiblings] = useState([]);
   const [newTotalSiblings, setNewTotalSiblings] = useState(0); // Initialize with initial value
   const [newTotalFamilyMembers, setNewTotalFamilyMembers] = useState(0); // Initialize with initial value
+  const [editMode, setEditMode] = useState(false);
+  const [editedAddictions, setEditedAddictions] = useState('');
+  const [editedDrinkingWaterSource, setEditedDrinkingWaterSource] = useState('');
+  const [editedOther, setEditedOther] = useState('');
+  const [editDiseaseMode, setEditDiseaseMode] = useState(false);
+  const [checkedDiabetes, setCheckedDiabetes] = useState([]);
+  const [checkedAnaemia, setCheckedAnaemia] = useState([]);
+  const [checkedTuberculosis, setCheckedTuberculosis] = useState([]);
 
+  const updatedDiabetes = checkedDiabetes.join(', ');
+  const updatedAnaemia = checkedAnaemia.join(', ');
+  const updatedTuberculosis = checkedTuberculosis.join(', ');
+
+  function toggleCheckbox(value, section) {
+    switch (section) {
+      //case for diabetes
+      case 'Diabetes':
+        setCheckedDiabetes((prevChecked) =>
+          prevChecked.includes(value)
+            ? prevChecked.filter((item) => item !== value)
+            : [...prevChecked, value]
+        );
+        break;
+      // case for Anaemia
+      case 'Anaemia':
+        setCheckedAnaemia((prevChecked) =>
+          prevChecked.includes(value)
+            ? prevChecked.filter((item) => item !== value)
+            : [...prevChecked, value]
+        );
+        break;
+      //case for tuberculosis
+      case 'Tuberculosis':
+        setCheckedTuberculosis((prevChecked) =>
+          prevChecked.includes(value)
+            ? prevChecked.filter((item) => item !== value)
+            : [...prevChecked, value]
+        );
+        break;
+      //default
+      default:
+        break;
+    }
+  }
+
+  function formatCheckboxValues(values) {
+    if (Array.isArray(values)) {
+      return values.join('\n');
+    } else if (typeof values === 'string') {
+      return values;
+    } else {
+      return 'N/A';
+    }
+  }
+
+
+  useEffect(() => {
+    if (formData) {
+      setEditedAddictions(formData.addictions || ''); // Use empty string as fallback if addictions value is null
+      setEditedDrinkingWaterSource(formData.source_of_drinking_water || '');
+      setEditedOther(formData.other || '');
+      setCheckedDiabetes((formData.diabetes || '').split(', ').filter(Boolean));
+      setCheckedAnaemia((formData.anaemia || '').split(', ').filter(Boolean));
+      setCheckedTuberculosis((formData.tuberculosis || '').split(', ').filter(Boolean));
+    }
+  }, [formData]);
+
+  const handleSaveChangesfield = () => {
+    setEditMode(false); // Set edit mode to false after saving changes
+    let updatedSourceOfDrinkingWater = selectedSource;
+    if (selectedSource === 'other') {
+      updatedSourceOfDrinkingWater = otherSourceValue;
+    }
+    // Update formData with edited values
+
+    try {
+      setFormData({
+        ...formData,
+        addictions: editedAddictions,
+        source_of_drinking_water: updatedSourceOfDrinkingWater,
+        other: editedOther,
+        diabetes: updatedDiabetes,
+        anaemia: updatedAnaemia,
+        tuberculosis: updatedTuberculosis,
+        // Update other form fields accordingly
+      });
+      const requestData = {
+        anganwadiNo, // Assuming these variables are available in scope
+        childsName,
+        addictions: editedAddictions,
+        source_of_drinking_water: updatedSourceOfDrinkingWater,
+        diabetes: updatedDiabetes,
+        anaemia: updatedAnaemia,
+        tuberculosis: updatedTuberculosis,
+        other: editedOther, // Pass the updated phone number to the backend
+      };
+
+      const response = fetch(`${API_URL}/updateFields`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (response.status === 200) {
+        // Phone number updated successfully in the backend
+        console.log(' updated successfully');
+      } else {
+        console.log('Failed to update Fields');
+      }
+    } catch (error) {
+      console.error('Error updating:', error);
+    }
+  };
+  const handleEditAddictionsClick = () => {
+    setEditMode(!editMode);
+  };
+
+  const handleEditDrinkingWaterClick = () => {
+    setEditMode(!editMode);
+  };
+
+  const handleEditOtherClick = () => {
+    setEditMode(!editMode);
+  };
+
+  const handleAddictionsChange = (text) => {
+    setEditedAddictions(text);
+  };
+
+  const handleDrinkingWaterChange = (text) => {
+    setEditedDrinkingWaterSource(text);
+  };
+
+  const handleOtherChange = (text) => {
+    setEditedOther(text);
+  };
 
   const handleAddSibling = () => {
     setSiblings([...siblings, { name: '', age: '', malnourished: false }]);
@@ -639,62 +780,290 @@ const ViewForm = ({ route }) => {
           </TouchableOpacity>
           {/* Save Changes Button */}
           <TouchableOpacity style={styles.addButton} onPress={handleSaveChanges}>
-            <Text style={styles.saveChangesButtonText}>Save Changes</Text>
+            <Text style={[styles.saveChangesButtonText, { color: 'white' }]}>Save Changes</Text>
           </TouchableOpacity>
 
           <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Disease History/रोग इतिहास :</Text>
 
-            {formData.diabetes !== null && (
+            <View style={{ flexDirection: 'column' }}>
+              {/* English label and edit icon */}
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.label}>Disease History/</Text>
+                {/* Edit icon for Disease History */}
+                <TouchableOpacity onPress={() => setEditDiseaseMode(!editDiseaseMode)}>
+                  <Image source={require('../assets/edit.png')} style={styles.editIcon} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Marathi label */}
+              <Text style={styles.label}>रोग इतिहास :</Text>
+              <Text style={styles.label}> </Text>
+            </View>
+
+            {/* Disease History Text Inputs */}
+            {editDiseaseMode ? (
               <>
                 <Text style={styles.label}>Diabetes / मधुमेह :</Text>
-                {formData.diabetes.split(',').map((englishValue, index) => (
-                  <Text key={index} style={styles.text}>
-                    {`${englishValue.trim()} / ${diseaseMapping[englishValue.trim()]}`}
-                  </Text>
-                ))}
-              </>
-            )}
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Mother', 'Diabetes')}
+                  isChecked={checkedDiabetes.includes('Mother')}
+                  leftText={'Mother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Father', 'Diabetes')}
+                  isChecked={checkedDiabetes.includes('Father')}
+                  leftText={'Father'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Maternal Grandmother', 'Diabetes')}
+                  isChecked={checkedDiabetes.includes('Maternal Grandmother')}
+                  leftText={'Maternal Grandmother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Maternal Grandfather', 'Diabetes')}
+                  isChecked={checkedDiabetes.includes('Maternal Grandfather')}
+                  leftText={'Maternal Grandfather'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Paternal Grandmother', 'Diabetes')}
+                  isChecked={checkedDiabetes.includes('Paternal Grandmother')}
+                  leftText={'Paternal Grandmother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Paternal Grandfather', 'Diabetes')}
+                  isChecked={checkedDiabetes.includes('Paternal Grandfather')}
+                  leftText={'Paternal Grandfather'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
 
-            {formData.anaemia !== null && (
-              <>
                 <Text style={styles.label}>Anaemia / पांडुरोग :</Text>
-                {formData.anaemia.split(',').map((englishValue, index) => (
-                  <Text key={index} style={styles.text}>
-                    {`${englishValue.trim()} / ${diseaseMapping[englishValue.trim()]}`}
-                  </Text>
-                ))}
-              </>
-            )}
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Mother', 'Anaemia')}
+                  isChecked={checkedAnaemia.includes('Mother')}
+                  leftText={'Mother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Father', 'Anaemia')}
+                  isChecked={checkedAnaemia.includes('Father')}
+                  leftText={'Father'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Maternal Grandmother', 'Anaemia')}
+                  isChecked={checkedAnaemia.includes('Maternal Grandmother')}
+                  leftText={'Maternal Grandmother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Maternal Grandfather', 'Anaemia')}
+                  isChecked={checkedAnaemia.includes('Maternal Grandfather')}
+                  leftText={'Maternal Grandfather'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Paternal Grandmother', 'Anaemia')}
+                  isChecked={checkedAnaemia.includes('Paternal Grandmother')}
+                  leftText={'Paternal Grandmother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Paternal Grandfather', 'Anaemia')}
+                  isChecked={checkedAnaemia.includes('Paternal Grandfather')}
+                  leftText={'Paternal Grandfather'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
 
-            {formData.tuberculosis !== null && (
-              <>
                 <Text style={styles.label}>Tuberculosis / क्षयरोग :</Text>
-                {formData.tuberculosis.split(',').map((englishValue, index) => (
-                  <Text key={index} style={styles.text}>
-                    {`${englishValue.trim()} / ${diseaseMapping[englishValue.trim()]}`}
-                  </Text>
-                ))}
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Mother', 'Tuberculosis')}
+                  isChecked={checkedTuberculosis.includes('Mother')}
+                  leftText={'Mother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Father', 'Tuberculosis')}
+                  isChecked={checkedTuberculosis.includes('Father')}
+                  leftText={'Father'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Maternal Grandmother', 'Tuberculosis')}
+                  isChecked={checkedTuberculosis.includes('Maternal Grandmother')}
+                  leftText={'Maternal Grandmother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Maternal Grandfather', 'Tuberculosis')}
+                  isChecked={checkedTuberculosis.includes('Maternal Grandfather')}
+                  leftText={'Maternal Grandfather'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Paternal Grandmother', 'Tuberculosis')}
+                  isChecked={checkedTuberculosis.includes('Paternal Grandmother')}
+                  leftText={'Paternal Grandmother'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+                <CheckBox
+                  style={{ flex: 1, padding: 10 }}
+                  onClick={() => toggleCheckbox('Paternal Grandfather', 'Tuberculosis')}
+                  isChecked={checkedTuberculosis.includes('Paternal Grandfather')}
+                  leftText={'Paternal Grandfather'}
+                  leftTextStyle={{ color: 'black' }}
+                  checkBoxColor={'teal'}
+                />
+
+              </>
+            ) : (
+              <>
+                <Text style={styles.label}>Diabetes / मधुमेह :</Text>
+                <Text style={[styles.text, { fontSize: 14 }]}>
+                  {formatCheckboxValues(formData.diabetes)}
+                </Text>
+
+                <Text style={styles.label}>Anaemia / पांडुरोग :</Text>
+                <Text style={[styles.text, { fontSize: 14 }]}>
+                  {formatCheckboxValues(formData.anaemia)}
+                </Text>
+
+                <Text style={styles.label}>Tuberculosis / क्षयरोग :</Text>
+                <Text style={[styles.text, { fontSize: 14 }]}>
+                  {formatCheckboxValues(formData.tuberculosis)}
+                </Text>
               </>
             )}
           </View>
 
 
-
-          <View style={styles.fieldContainer}>
+          {/* Addictions */}
+          <View style={styles.fldContainer}>
             <Text style={styles.label}>Addictions/व्यसने:</Text>
-            <Text style={styles.text}>{formData.addictions}</Text>
+            <TouchableOpacity onPress={handleEditAddictionsClick}>
+              <Image source={require('../assets/edit.png')} style={styles.editIcon} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.fieldContainer}>
+            {editMode ? (
+              <TextInput
+                style={[styles.input, { color: 'black' }]}
+                value={editedAddictions}
+                onChangeText={handleAddictionsChange}
+              />
+            ) : (
+              <Text style={styles.text}>{formData.addictions}</Text>
+            )}
           </View>
 
+          {/* Source of Drinking Water */}
           <View style={styles.fieldContainer}>
+
             <Text style={styles.label}>Source of Drinking Water/प्या पाण्याची स्त्रोत:</Text>
-            <Text style={styles.text}>{formData.source_of_drinking_water}</Text>
+            {editMode ? (
+              <View>
+                <View style={{ flexDirection: 'column' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                    <RadioButton
+                      value="tap"
+                      status={selectedSource === 'tap' ? 'checked' : 'unchecked'}
+                      onPress={() => setSelectedSource('tap')}
+                    />
+                    <Text style={{ color: '#000', marginLeft: 10 }}>Tap</Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                    <RadioButton
+                      value="tanker"
+                      status={selectedSource === 'tanker' ? 'checked' : 'unchecked'}
+                      onPress={() => setSelectedSource('tanker')}
+                    />
+                    <Text style={{ color: '#000', marginLeft: 10 }}>Tanker</Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                    <RadioButton
+                      value="other"
+                      status={selectedSource === 'other' ? 'checked' : 'unchecked'}
+                      onPress={() => {
+                        setSelectedSource('other');
+                        setOtherSourceValue('');
+                      }}
+                    />
+                    <Text style={{ color: '#000', marginLeft: 10 }}>Other</Text>
+                  </View>
+
+                  {selectedSource === 'other' && (
+                    <TextInput
+                      style={[styles.input, { color: 'black', marginBottom: 10 }]}
+                      value={otherSourceValue}
+                      onChangeText={(text) => setOtherSourceValue(text)}
+                      placeholder="Enter Other Source"
+                    />
+                  )}
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.text}>{formData.source_of_drinking_water}</Text>
+            )}
           </View>
 
+          {/* Other */}
           <View style={styles.fieldContainer}>
+
             <Text style={styles.label}>Other/इतर:</Text>
-            <Text style={styles.text}>{formData.other}</Text>
+            {editMode ? (
+              <TextInput
+                style={[styles.input, { color: 'black' }]}
+                value={editedOther}
+                onChangeText={handleOtherChange}
+              />
+            ) : (
+              <Text style={styles.text}>{formData.other}</Text>
+            )}
           </View>
+
+          <TouchableOpacity style={styles.addButton} onPress={handleSaveChangesfield} >
+            <Text style={[styles.saveChangesButtonText, { color: 'white' }]}>Save Changes</Text>
+          </TouchableOpacity>
           {/* Add more data fields here with labels and text */}
         </View>
       ) : (
@@ -755,6 +1124,11 @@ const styles = StyleSheet.create({
   },
   fieldContainer: {
     marginBottom: 15,
+  },
+  fldContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // other styles
   },
   input: {
     color: 'black'
@@ -912,7 +1286,12 @@ const styles = StyleSheet.create({
     height: 45, // Adjust the height as needed
     textAlignVertical: 'center', // Start typing from the top
   },
-
+  editIcon:
+  {
+    height: 25,
+    width: 25,
+    marginStart: 100,
+  }
 
 });
 

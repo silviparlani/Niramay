@@ -360,10 +360,10 @@ app.post('/generalHistory', (req, res) => {
 
 app.post('/visits', (req, res) => {
   try {
-    const { anganwadiNo, childName, visitDate, haemoglobin,  totalNoOfJars, grade, weight, height, muac, difference, observations, iron, multivitamin, calcium, protein } = req.body;
+    const { anganwadiNo, childName, visitDate, haemoglobin, totalNoOfJars, grade, weight, height, muac, difference, observations, iron, multivitamin, calcium, protein } = req.body;
     console.log(req.body);
     const sql = 'INSERT INTO Visits (anganwadiNo, childName, visitDate,haemoglobin, totalNoOfJars,grade, weight, height, muac, difference, observations, iron, multivitamin, calcium, protein ) VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?)';
-    db.query(sql, [anganwadiNo, childName, visitDate, haemoglobin,  totalNoOfJars, grade, weight, height, muac, difference, observations, iron, multivitamin, calcium, protein ], (err, result) => {
+    db.query(sql, [anganwadiNo, childName, visitDate, haemoglobin, totalNoOfJars, grade, weight, height, muac, difference, observations, iron, multivitamin, calcium, protein], (err, result) => {
       if (err) {
         console.error('Database error: ' + err.message);
         res.status(500).json({ error: 'Error inserting data into the database' });
@@ -782,6 +782,60 @@ app.get('/gender_distribution/:bit_name/', (req, res) => {
   });
 
 });
+
+// app.post('/updateFields', (req, res) => {
+//   const { anganwadiNo, childsName, addictions, source_of_drinking_water, other } = req.body;
+
+//   // Update the phone number in the child table
+//   const sql = `UPDATE child SET addictions=?,source_of_drinking_water=?,other=? WHERE anganwadi_no = ? AND child_name = ?`;
+
+//   db.query(sql, [addictions, source_of_drinking_water, other, anganwadiNo, childsName], (err, result) => {
+//     if (err) {
+//       console.error('Error updating phone number:', err);
+//       res.status(500).json({ error: 'Error updating phone number' });
+//       throw err;
+//     }
+
+//     console.log('Phone number updated successfully');
+//     res.status(200).json({ message: 'Phone number updated successfully' });
+//   });
+// });
+
+app.post('/updateFields', (req, res) => {
+  const {
+    anganwadiNo,
+    childsName,
+    addictions,
+    source_of_drinking_water,
+    other,
+    diabetes, // Include disease history fields
+    anaemia,
+    tuberculosis,
+  } = req.body;
+
+  // Update the fields in the child table
+  const sql = `
+    UPDATE child 
+    SET addictions=?, source_of_drinking_water=?, other=?, diabetes=?, anaemia=?, tuberculosis=?
+    WHERE anganwadi_no = ? AND child_name = ?
+  `;
+
+  db.query(
+    sql,
+    [addictions, source_of_drinking_water, other, diabetes, anaemia, tuberculosis, anganwadiNo, childsName],
+    (err, result) => {
+      if (err) {
+        console.error('Error updating fields:', err);
+        res.status(500).json({ error: 'Error updating fields' });
+        throw err;
+      }
+
+      console.log('Fields updated successfully');
+      res.status(200).json({ message: 'Fields updated successfully' });
+    }
+  );
+});
+
 
 
 
