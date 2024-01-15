@@ -783,24 +783,6 @@ app.get('/gender_distribution/:bit_name/', (req, res) => {
 
 });
 
-// app.post('/updateFields', (req, res) => {
-//   const { anganwadiNo, childsName, addictions, source_of_drinking_water, other } = req.body;
-
-//   // Update the phone number in the child table
-//   const sql = `UPDATE child SET addictions=?,source_of_drinking_water=?,other=? WHERE anganwadi_no = ? AND child_name = ?`;
-
-//   db.query(sql, [addictions, source_of_drinking_water, other, anganwadiNo, childsName], (err, result) => {
-//     if (err) {
-//       console.error('Error updating phone number:', err);
-//       res.status(500).json({ error: 'Error updating phone number' });
-//       throw err;
-//     }
-
-//     console.log('Phone number updated successfully');
-//     res.status(200).json({ message: 'Phone number updated successfully' });
-//   });
-// });
-
 app.post('/updateFields', (req, res) => {
   const {
     anganwadiNo,
@@ -836,8 +818,265 @@ app.post('/updateFields', (req, res) => {
   );
 });
 
+app.get('/childData', async (req, res) => {
+  const { year } = req.query;
+
+  try {
+    let query = `
+      SELECT bit_name,
+             COUNT(*) as total_children_count,
+             SUBSTRING(date, 1, 4) as extracted_year
+      FROM child
+    `;
+
+    if (year) {
+      query += ` WHERE SUBSTRING(date, 1, 4) = ${year} AND bit_name IS NOT NULL AND bit_name != ''`;
+    } else {
+      query += ` WHERE bit_name IS NOT NULL AND bit_name != ''`;
+    }
+
+    query += `
+      GROUP BY bit_name, extracted_year
+    `;
+
+    const [rows, fields] = await db.promise().query(query);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error executing MySQL query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/availableYears', async (req, res) => {
+  try {
+    const query = 'SELECT DISTINCT SUBSTRING(date, 1, 4) as year FROM child WHERE bit_name IS NOT NULL AND bit_name != ""';
+    const [rows, fields] = await db.promise().query(query);
+    const years = rows.map(row => row.year).filter(year => !!year);
+    res.json(years);
+  } catch (error) {
+    console.error('Error fetching available years:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/childList', async (req, res) => {
+  const { year, bitName } = req.query;
+
+  try {
+    let query;
+    let queryParams;
+
+    if (year) {
+      query = `
+        SELECT child_name, anganwadi_no
+        FROM child
+        WHERE bit_name = ? AND SUBSTRING(date, 1, 4) = ?
+      `;
+      queryParams = [bitName, year];
+    } else {
+      // When no year is provided, fetch data for all years
+      query = `
+        SELECT child_name, anganwadi_no
+        FROM child
+        WHERE bit_name = ?
+      `;
+      queryParams = [bitName];
+    }
+
+    const [rows, fields] = await db.promise().query(query, queryParams);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error executing MySQL query for child list:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/children/:anganwadiName/:gender', (req, res) => {
+  const { anganwadiName, gender } = req.params;
+  const query = 'SELECT child_name, anganwadi_no FROM child WHERE bit_name = ? AND child_gender = ?';
+
+  db.query(query, [anganwadiName, gender], (error, results) => {
+    if (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+app.get('/fetchAnganwadiNumbers', (req, res) => {
+  const { bitName } = req.query;
+
+  const query = 'SELECT anganwadi_no FROM child WHERE bit_name = ?';
+  db.query(query, [bitName], (error, results) => {
+    if (error) {
+      console.error('Error fetching Anganwadi numbers:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+app.get('/bit_name', (req, res) => {
+  const query = 'SELECT DISTINCT bit_name FROM child';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error querying the database: ', err);
+      res.status(500).json({ error: 'Database error' });
+    } else {
+      const bit_name = results.map((row) => row.bit_name);
+      res.json(bit_name);
+      console.log(bit_name)
+    }
+  });
+});
 
 
+app.get('/visitDate/:bit_name', (req, res) => {
+  const { bit_name } = req.params;
+
+  // Fetch all anganwadi_no values associated with the given bit_name
+  const query1 = 'SELECT anganwadi_no FROM child WHERE bit_name = ?';
+  db.query(query1, [bit_name], (err, results) => {
+    if (err) {
+      console.error('Error querying the database: ', err);
+      res.status(500).json({ error: 'Database error' });
+    } else {
+      const anganwadiNos = results.map((row) => row.anganwadi_no);
+
+      // Check if anganwadiNos is empty
+      if (anganwadiNos.length === 0) {
+        res.status(404).json({ error: 'No matching records found' });
+        return;
+      }
+
+      // Next, fetch distinct visit dates for all obtained anganwadi_no values
+      const query2 = 'SELECT DISTINCT visitDate FROM visits WHERE anganwadiNo IN (?)';
+      db.query(query2, [anganwadiNos], (err, results) => {
+        if (err) {
+          console.error('Error querying the database: ', err);
+          res.status(500).json({ error: 'Database error' });
+        } else {
+          const visitDate = results.map((row) => row.visitDate);
+          console.log('****')
+          console.log(bit_name)
+          res.json(visitDate);
+        }
+      });
+    }
+  });
+});
+
+// Define an endpoint to fetch child distribution
+app.get('/child_distribution/:bit_name/:visitDate(*)', (req, res) => {
+  const { bit_name, visitDate } = req.params;
+  console.log('bit_name:', bit_name);
+  console.log('visitDate:', visitDate);
+  // Fetch child distribution data for the provided bit_name and visitDate for all matching anganwadi_no
+  const query = `
+SELECT grade, COUNT(*) AS count
+FROM visits v
+JOIN child c ON v.anganwadiNo = c.anganwadi_no AND v.childName = c.child_name
+WHERE c.bit_name = ? AND v.visitDate = ?
+GROUP BY grade;
+
+`;
+
+  db.query(query, [bit_name, visitDate], (err, results) => {
+    if (err) {
+      console.error('Error executing MySQL query: ' + err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    const childDistribution = results.map((row) => ({
+      grade: row.grade,
+      count: row.count,
+
+    }));
+    console.log(childDistribution)
+    console.log("!!!!")
+    res.json(childDistribution);
+  });
+});
+
+
+app.get('/grade_details/:bit_name/:visitDate/:grade', (req, res) => {
+  const { bit_name, visitDate, grade } = req.params;
+
+  // Fetch child details for the provided bit_name, visitDate, and grade
+  const query = `
+  SELECT childName, anganwadiNo
+  FROM visits
+  WHERE anganwadiNo IN (SELECT anganwadi_no FROM child WHERE bit_name = ?)
+  AND visitDate = ?
+  AND grade = ?;
+`;
+
+  db.query(query, [bit_name, visitDate, grade], (err, results) => {
+    if (err) {
+      console.error('Error executing MySQL query: ' + err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    const gradeDetails = results.map((row) => ({
+      childName: row.childName,
+      anganwadiNo: row.anganwadiNo,
+    }));
+
+    res.json(gradeDetails);
+  });
+});
+
+app.get('/getTransitionCount', async (req, res) => {
+  try {
+    // Extract the distinct years from the visits table
+    const distinctYearsQuery = 'SELECT DISTINCT YEAR(visitDate) AS year FROM visits;';
+    const distinctYearsResult = await db.promise().query(distinctYearsQuery);
+    const distinctYears = distinctYearsResult[0].map((row) => row.year);
+
+    // Extract the year parameter from the request query
+    const selectedYear = req.query.year;
+
+    // Use the year parameter in your SQL query
+    const query = `
+      SELECT
+        c.bit_name,
+        COUNT(DISTINCT CASE WHEN sam_visits.firstVisitDate IS NOT NULL AND normal_visits.visitDate IS NOT NULL THEN v.childName END) AS sam_to_normal_count,
+        COUNT(DISTINCT CASE WHEN mam_visits.firstVisitDate IS NOT NULL AND normal_visits.visitDate IS NOT NULL THEN v.childName END) AS mam_to_normal_count
+      FROM child c
+      JOIN visits v ON c.child_name = v.childName AND c.anganwadi_no = v.anganwadiNo
+      LEFT JOIN (
+        SELECT childName, MIN(visitDate) AS firstVisitDate
+        FROM visits
+        WHERE grade = 'SAM'
+        GROUP BY childName
+      ) AS sam_visits ON v.childName = sam_visits.childName
+      LEFT JOIN (
+        SELECT childName, MIN(visitDate) AS firstVisitDate
+        FROM visits
+        WHERE grade = 'MAM'
+        GROUP BY childName
+      ) AS mam_visits ON v.childName = mam_visits.childName
+      LEFT JOIN visits normal_visits ON v.childName = normal_visits.childName AND normal_visits.grade = 'Normal'
+      WHERE (v.grade = 'SAM' OR v.grade = 'MAM')
+      ${selectedYear ? `AND YEAR(v.visitDate) = ${db.escape(selectedYear)}` : ''}
+      GROUP BY c.bit_name;
+    `;
+
+    const result = await db.promise().query(query);
+
+    // Return the result along with distinct years for the dropdown
+    res.json({ data: result[0], distinctYears });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // Start the server
 app.listen(port, '0.0.0.0', () => {

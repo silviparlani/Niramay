@@ -9,6 +9,9 @@ import { API_URL } from './config';
 const checkmarkImage = require('../assets/check-mark.png');
 import CheckBox from 'react-native-check-box';
 import { useEffect } from 'react';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
+import moment from 'moment';
+
 
 const CollapsibleSectionWithIcon = ({ title, children }) => {
   const [collapsed, setCollapsed] = useState(true);
@@ -16,6 +19,7 @@ const CollapsibleSectionWithIcon = ({ title, children }) => {
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
   };
+
 
   return (
     <View style={styles.collapsibleSection}>
@@ -70,18 +74,38 @@ const SupplementCounter = ({ value, onIncrement, onDecrement }) => {
 };
 
 const VisitRow = ({ visit, index, handleVisitFieldChange }) => {
+  
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  // Function to handle date change
+  const handleDateChange = (day) => {
+    setSelectedDate(day.dateString);
+    setShowCalendar(false);
+  };
+
+  // Function to render the calendar
+  const renderCalendar = () => (
+    <View>
+      <TouchableOpacity onPress={() => setShowCalendar(true)}>
+        <Text style={[styles.selectDateText, { color: 'grey', fontSize: 18 }]}>
+          {selectedDate ? moment(selectedDate).format('YYYY/MM/DD') : 'Select date'}
+        </Text>
+      </TouchableOpacity>
+
+      {showCalendar && (
+        <Calendar
+          onDayPress={handleDateChange}
+          markedDates={selectedDate ? { [selectedDate]: { selected: true } } : {}}
+        />
+      )}
+    </View>
+  );
 
   return (
     <View>
       <Text style={styles.label}>Date:</Text>
-      <TextInput
-        value={visit.date}
-        onChangeText={(text) => handleVisitFieldChange(index, 'date', text)}
-        placeholder="DD-MM-YYYY"
-        keyboardType="phone-pad"
-        maxLength={10}
-        style={styles.textInput}
-      />
+      {renderCalendar()}
 
       <Text style={styles.label}>Haemoglobin:</Text>
       <TextInput

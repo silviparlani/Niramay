@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, FlatList, ScrollView,Image, Button,TouchableOpacity } from 'react-native';
+//import { View, Text, ActivityIndicator, StyleSheet, FlatList, ScrollView, Image, Button, TouchableOpacity } from 'react-native';
 import ModalDropdown from 'react-native-modal-dropdown';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
@@ -7,7 +7,9 @@ import { PieChart } from 'react-native-chart-kit';
 import { API_URL } from './config';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { captureRef } from 'react-native-view-shot';
-import logo2 from '../assets/logo2.jpg'; 
+import logo2 from '../assets/logo2.jpg';
+import { View, Text, ActivityIndicator, StyleSheet, FlatList, ScrollView, Image, Button, TouchableOpacity, Alert } from 'react-native';
+import Modal from 'react-native-modal';
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -34,7 +36,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#CCCCCC',
     marginBottom: 20,
-    
+
   },
   dropdownText: {
     fontSize: 16,
@@ -87,15 +89,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 8,
   },
-  tableHeader: {
-    backgroundColor: 'teal',
-    paddingVertical: 8,
-  },
   tableHeaderText: {
     fontSize: 16,
-    color: 'white',
+    color: 'black',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    paddingVertical: 8,
+    paddingHorizontal: 0,
   },
   tableRow: {
     flexDirection: 'row',
@@ -138,13 +142,81 @@ const styles = StyleSheet.create({
     height: 30,
     // Add styles for your icon if needed
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 200,
+    paddingBottom: 200,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    color: '#333',
+    textAlign: 'center',
+  },
+  modalHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+    color: 'black',
+  },
+  closeModalButton: {
+    marginTop: 20,
+    marginBottom: 20,
+    paddingBottom: 10,
+    backgroundColor: 'teal',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  closeModalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+    padding: 10,
+    width: '80%',
+  },
+  noChildListText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  modalItemText: {
+    flex: 1,
+    color: '#333',
+    fontSize: 16,
+    textAlign: 'center',
+  },
 });
 const colors = ['#3498db', '#ff69b4']; // Blue for male, Pink for female
 import RNFS from 'react-native-fs';
 
 // Function to convert image to base64
 
-const CustomMenuButton = ({ toggleMenu,handlePDFGeneration}) => {
+const CustomMenuButton = ({ toggleMenu, handlePDFGeneration }) => {
   const handleMenuToggle = () => {
     toggleMenu(); // Call the toggleMenu function received as a prop
   };
@@ -153,10 +225,12 @@ const CustomMenuButton = ({ toggleMenu,handlePDFGeneration}) => {
     <TouchableOpacity style={styles.menuButton} onPress={handleMenuToggle}>
       <Image source={require('../assets/menu.png')} style={styles.menuIcon} />
     </TouchableOpacity>
-    
+
   );
 };
-const BitNamevsGenderGraph = ({toggleMenu}) => {
+
+
+const BitNamevsGenderGraph = ({ toggleMenu }) => {
   const navigation = useNavigation();
   const [bitName, setBitName] = useState([]);
   const [selectedBitName, setSelectedBitName] = useState('');
@@ -197,12 +271,31 @@ const BitNamevsGenderGraph = ({toggleMenu}) => {
     }
   }, [selectedBitName]);
 
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [childData, setChildData] = useState([]);
+
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
+  const fetchChildData = (gender) => {
+    axios
+      .get(`${API_URL}/children/${selectedBitName}/${gender}`)
+      .then((response) => {
+        setChildData(response.data);
+        toggleModal(); // Show the modal
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   const pieChartData = data.map((item, index) => ({
     name: item.gender,
     count: item.count,
     color: item.gender === 'male' ? colors[0] : colors[1], // Blue for Male, Pink for Female
   }));
-  
+
 
   useEffect(() => {
     console.log('bitName:', bitName);
@@ -220,8 +313,8 @@ const BitNamevsGenderGraph = ({toggleMenu}) => {
     }
   };
 
-  const generateHTMLContent =() => {
-  
+  const generateHTMLContent = () => {
+
     return `
       <html>
         <head>
@@ -375,26 +468,45 @@ const BitNamevsGenderGraph = ({toggleMenu}) => {
         Alert.alert('Error', 'Please select an Anganwadi Name before generating PDF.');
         return;
       }
-  
+
       // Check if chartRef is defined before capturing the chart image
       if (chartRef) {
         await captureChartImage();
       }
-  
+
       const options = {
         html: generateHTMLContent(),
         fileName: `${selectedBitName}`,
         directory: 'Documents/GenderDistributionReport',
       };
-  
+
       const file = await RNHTMLtoPDF.convert(options);
       console.log('PDF generated:', file.filePath);
     } catch (error) {
       console.error('Error generating PDF:', error);
     }
   };
-  
+
   let chartRef;
+
+  const renderChildList = () => {
+    if (!childData.length) {
+      return <Text style={styles.noChildListText}>No children in this Bit Name</Text>;
+    }
+
+    return (
+      <FlatList
+        data={childData}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.modalItem}>
+            <Text style={styles.modalItemText}>{item.child_name}</Text>
+            <Text style={styles.modalItemText}>{item.anganwadi_no}</Text>
+          </View>
+        )}
+      />
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -450,14 +562,44 @@ const BitNamevsGenderGraph = ({toggleMenu}) => {
               data={data}
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item }) => (
-                <View style={styles.tableRow}>
+                <TouchableOpacity
+                  style={styles.tableRow}
+                  onPress={() => fetchChildData(item.gender)}
+                >
                   <Text style={styles.tableCell}>{item.gender}</Text>
                   <Text style={styles.tableCell}>{item.count}</Text>
-                </View>
+                </TouchableOpacity>
               )}
             />
           </View>
         )}
+        {/* Modal Section */}
+        <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Child List</Text>
+              <View style={styles.tableHeader}>
+                <Text style={styles.tableHeaderText}>Name</Text>
+                <Text style={styles.tableHeaderText}>Anganwadi No</Text>
+              </View>
+              {/* <FlatList
+                data={childData}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <View style={styles.childDataRow}>
+                    <Text style={styles.tableCell}>{item.child_name}</Text>
+                    <Text style={styles.tableCell}>{item.anganwadi_no}</Text>
+                  </View>
+                )}
+              /> */}
+              {renderChildList()}
+              <TouchableOpacity style={styles.closeModalButton} onPress={toggleModal}>
+                <Text style={styles.closeModalButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
       </ScrollView>
 
       <TouchableOpacity

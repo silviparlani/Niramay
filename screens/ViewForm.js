@@ -9,6 +9,7 @@ import COLORS from '../constants/colors.js';
 import RNPrint from 'react-native-print';
 import { RadioButton } from 'react-native-paper'; // Import RadioButton from react-native-paper
 import CheckBox from 'react-native-check-box';
+import moment from 'moment';
 
 const ViewForm = ({ route }) => {
   const { anganwadiNo, childsName } = route.params;
@@ -480,6 +481,7 @@ const ViewForm = ({ route }) => {
   
           <h2>Child Information</h2>
           <p>Child's Name: ${formData.child_name}</p>
+          <p>Child's Date of Birth: ${formData.date ? new Date(formData.date).toLocaleDateString('en-US') : 'N/A'}</p>
           <p>Child's Date of Birth: ${formData.child_dob ? new Date(formData.child_dob).toLocaleDateString('en-US') : 'N/A'}</p>
           <p>Child's Gender: ${formData.child_gender}</p>
           <p>Child's Phone Number: ${formData.child_phone}</p>
@@ -618,14 +620,35 @@ const ViewForm = ({ route }) => {
             <Text style={styles.text}>{formData.child_name}</Text>
           </View>
 
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>Date of Registration / नोंदणीची तारीख :</Text>
+            <Text style={styles.text}>
+              {formData.date
+                ? (() => {
+                  try {
+                    return moment(formData.date, 'YYYY/MM/DD').format('YYYY/MM/DD');
+                  } catch (error) {
+                    console.error('Error formatting date:', error);
+                    return 'N/A';
+                  }
+                })()
+                : 'N/A'}
+            </Text>
+          </View>
+
 
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>Child's DOB/मुलाची जन्म तारीख:</Text>
             <Text style={styles.text}>
               {formData.child_dob
-                ? new Date(formData.child_dob).toLocaleDateString('en-US', {
-                  timeZone: 'Asia/Kolkata', // Set the timezone to India's timezone
-                })
+                ? (() => {
+                  try {
+                    return moment(formData.child_dob, 'YYYY/MM/DD').format('YYYY/MM/DD');
+                  } catch (error) {
+                    console.error('Error formatting date:', error);
+                    return 'N/A';
+                  }
+                })()
                 : 'N/A'}
             </Text>
           </View>
