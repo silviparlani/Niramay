@@ -1078,6 +1078,34 @@ app.get('/getTransitionCount', async (req, res) => {
   }
 });
 
+app.get('/getTransitionedChildren', async (req, res) => {
+  try {
+    const { bitName, year } = req.query;
+
+    const query = `
+      SELECT child_name, anganwadi_no
+      FROM child c
+      JOIN visits v ON c.child_name = v.childName AND c.anganwadi_no = v.anganwadiNo
+      WHERE c.bit_name = ${db.escape(bitName)}
+        AND YEAR(v.visitDate) = ${db.escape(year)}
+        AND (
+          (v.grade = 'SAM' AND (SELECT grade FROM visits WHERE childName = c.child_name AND grade = 'Normal' LIMIT 1) IS NOT NULL)
+          OR
+          (v.grade = 'MAM' AND (SELECT grade FROM visits WHERE childName = c.child_name AND grade = 'Normal' LIMIT 1) IS NOT NULL)
+        );
+    `;
+
+    const result = await db.promise().query(query);
+    const children = result[0];
+
+    res.json({ children });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 // Start the server
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on port ${port}`);

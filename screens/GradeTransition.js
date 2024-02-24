@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Modal, FlatList } from 'react-native';
 import { Table, Row } from 'react-native-table-component';
 import axios from 'axios';
 import {
@@ -20,6 +20,9 @@ const GradeTransition = () => {
   const [data, setData] = useState([]);
   const [distinctYears, setDistinctYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedBitName, setSelectedBitName] = useState('');
+  const [transitionedChildren, setTransitionedChildren] = useState([]);
   const chartContainerRef = useRef();
 
   useEffect(() => {
@@ -46,6 +49,24 @@ const GradeTransition = () => {
       console.error('Error fetching distinct years:', error);
     }
   };
+
+  const fetchTransitionedChildren = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/getTransitionedChildren`, {
+        params: { bitName: selectedBitName, year: selectedYear },
+      });
+      setTransitionedChildren(response.data.children);
+      setModalVisible(true);
+    } catch (error) {
+      console.error('Error fetching transitioned children:', error);
+    }
+  };
+
+  const onRowPress = (bitName) => {
+    setSelectedBitName(bitName);
+    fetchTransitionedChildren();
+  };
+
 
   const onYearChange = (index, value) => {
     setSelectedYear(value);
@@ -268,31 +289,21 @@ const GradeTransition = () => {
         };
         const pdf = await RNHTMLtoPDF.convert(options);
         const pdfPath = pdf.filePath;
-  
+
         // Move the generated PDF to the Downloads directory
         const downloadsPath = RNFS.DownloadDirectoryPath;
         const newPdfPath = `${downloadsPath}/GradeTransitionReport.pdf`;
-  
+
         await RNFS.moveFile(pdfPath, newPdfPath);
-  
+
         // Display an alert dialog after the PDF is generated
         Alert.alert(
           'PDF Generated!',
           `PDF has been downloaded in Downloads Folder`,
           [
-            // {
-            //   text: 'Click here to open the PDF',
-            //   onPress: () => {
-            //     // Open the generated PDF when the button in the alert dialog is pressed
-            //     Linking.openURL(`file://${newPdfPath}`);
-            //   },
-            // },
             {
               text: 'OK',
-              onPress: () => {
-                // Do something when the OK button is pressed
-                // This can be left empty if you don't need any action
-              },
+              onPress: () => {},
             },
           ]
         );
@@ -310,7 +321,7 @@ const GradeTransition = () => {
       <View style={styles.container}>
         <Text style={styles.heading}>Grade Transitions</Text>
         <Text style={styles.label}>Select Year:</Text>
-        
+
         {/* Dropdown for selecting year */}
         <ModalSelector
           data={['All Years', ...distinctYears.map((year) => ({ key: year.toString(), label: year.toString() }))]}
@@ -382,7 +393,7 @@ const GradeTransition = () => {
           <View style={styles.table}>
             <Text style={styles.tableTitle}>Transition Summary</Text>
             <ScrollView horizontal={true}>
-              <Table style={styles.tableContainer}>
+              {/* <Table style={styles.tableContainer}>
                 <Row
                   data={['Name', 'MAM to Normal', 'SAM to Normal']} // Updated labels
                   style={styles.tableHeader}
@@ -395,6 +406,25 @@ const GradeTransition = () => {
                     style={styles.tableRow}
                     textStyle={styles.tableCell}
                   />
+                ))}
+              </Table> */}
+              <Table style={styles.tableContainer}>
+                <Row
+                  data={['Name', 'MAM to Normal', 'SAM to Normal']}
+                  style={styles.tableHeader}
+                  textStyle={styles.tableHeaderText}
+                />
+                {data.map((item) => (
+                  <TouchableOpacity
+                    key={item.bit_name}
+                    onPress={() => onRowPress(item.bit_name)}
+                  >
+                    <Row
+                      data={[item.bit_name, item.mam_to_normal_count, item.sam_to_normal_count]}
+                      style={styles.tableRow}
+                      textStyle={styles.tableCell}
+                    />
+                  </TouchableOpacity>
                 ))}
               </Table>
             </ScrollView>
@@ -426,6 +456,34 @@ const GradeTransition = () => {
           />
           <Text style={{ color: 'black', fontSize: 14, marginTop: -40, marginEnd: 45 }}> PDF</Text>
         </TouchableOpacity>
+
+        {/* Modal for displaying transitioned children */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Transitioned Children</Text>
+            <FlatList
+              data={transitionedChildren}
+              keyExtractor={(item) => item.child_name}
+              renderItem={({ item }) => (
+                <View style={styles.modalItem}>
+                  <Text>{`Name: ${item.child_name}`}</Text>
+                  <Text>{`Anganwadi Number: ${item.anganwadi_no}`}</Text>
+                </View>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
       </View>
     </ScrollView>
   );
@@ -533,7 +591,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     color: 'black',
   },
-  
+
   dropdownText: {
     fontSize: 16,
     color: 'black',
@@ -552,7 +610,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginLeft:20,
+    marginLeft: 20,
     color: 'black',
   },
 });

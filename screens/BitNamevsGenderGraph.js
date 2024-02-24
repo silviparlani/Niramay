@@ -582,16 +582,6 @@ const BitNamevsGenderGraph = ({ toggleMenu }) => {
                 <Text style={styles.tableHeaderText}>Name</Text>
                 <Text style={styles.tableHeaderText}>Anganwadi No</Text>
               </View>
-              {/* <FlatList
-                data={childData}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <View style={styles.childDataRow}>
-                    <Text style={styles.tableCell}>{item.child_name}</Text>
-                    <Text style={styles.tableCell}>{item.anganwadi_no}</Text>
-                  </View>
-                )}
-              /> */}
               {renderChildList()}
               <TouchableOpacity style={styles.closeModalButton} onPress={toggleModal}>
                 <Text style={styles.closeModalButtonText}>Close</Text>
